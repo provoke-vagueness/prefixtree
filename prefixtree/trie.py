@@ -1,18 +1,29 @@
 "Trie implementation in pure Python"
 import array
-import itertools
+
+try:
+    from itertools import repeat, imap
+    iord = lambda s: imap(ord, s)
+    char = chr
+except ImportError:
+    from itertools import repeat
+    iord = iter
+    char = lambda o: bytes(chr(o), encoding='latin1')
 
 try:
     from collections import abc
 except ImportError:
     import collections as abc
 
+STRING_TYPE = bytes
+UNICODE_TYPE = str if str is not bytes else unicode
+
 
 class Node(abc.MutableMapping):
     "Node object for Trie"
 
     def __init__(self):
-        self._branches = array.array('B', itertools.repeat(0xFF, 256))
+        self._branches = array.array('B', repeat(0xFF, 256))
         self._children = 0
         self._nodes = []
 
@@ -50,3 +61,77 @@ class Node(abc.MutableMapping):
             self._nodes.append(node)
             self._branches[key] = leaf
             self._children += 1
+
+
+class TrieBase(object):
+
+    def __init__(self):
+        self._root = Node()
+        self._values = 0
+
+    def __iter__(self):
+        return self._iter(self._root, tuple())
+
+    def __len__(self):
+        return self._values
+
+    def _make_path(self, key):
+        encoded = False
+        if isinstance(key, UNICODE_TYPE):
+            encoded = True
+            key = key.encode('UTF-8')
+        if isinstance(key, STRING_TYPE):
+            path = iord(key)
+            return path, encoded
+        else:
+            raise TypeError("key must be string or bytes")
+
+    def _delete(self, keys, node):
+        try:
+            index = next(keys)
+            child = node[index]
+            if child is None:
+                raise AttributeError(index)
+            leaf = self._delete(keys, child)
+            if len(child) == 0:
+                del node[index]
+            return leaf
+        except StopIteration:
+            return node
+
+    def _insert(self, keys, node):
+        try:
+            index = next(keys)
+            child = node[index]
+            if child is None:
+                child = Node()
+                node[index] = child
+            return self._insert(keys, child)
+        except StopIteration:
+            return node
+
+    def _iter(self, node, path):
+        for node, path in self._walk(node, path):
+            if not hasattr(node, 'value'):
+                continue
+            key = b''.join(char(v) for v in path)
+            if node.encoded:
+                key = key.decode('UTF-8')
+            yield key
+
+    def _search(self, keys, node):
+        try:
+            index = next(keys)
+            child = node[index]
+            if child is None:
+                raise AttributeError(index)
+            return self._search(keys, child)
+        except StopIteration:
+            return node
+
+    def _walk(self, root, path):
+        for k1, n1 in root:
+            p1 = path + (k1,)
+            for n2, p2 in self._walk(n1, p1):
+                yield n2, p2
+        yield root, path

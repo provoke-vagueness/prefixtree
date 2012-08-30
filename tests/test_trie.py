@@ -3,7 +3,7 @@ import unittest
 from prefixtree import trie
 
 
-class TestTrieNode(unittest.TestCase):
+class TestNode(unittest.TestCase):
 
     def test_set_get(self):
         n = trie.Node()
@@ -42,3 +42,22 @@ class TestTrieNode(unittest.TestCase):
         for k, v in keys:
             n[k] = v
         self.assertEqual(len(n), 128)
+
+
+class TestTrie(unittest.TestCase):
+
+    def test_byte_path(self):
+        t = trie.TrieBase()
+        path, encoded = t._make_path(b'ab')
+        self.assertFalse(encoded)
+        self.assertSequenceEqual(list(path), [97, 98])
+
+    def test_unicode_path(self):
+        t = trie.TrieBase()
+        path, encoded = t._make_path(b'ab'.decode('UTF-8'))
+        self.assertTrue(encoded)
+        self.assertSequenceEqual(list(path), [97, 98])
+
+    def test_invalid_path(self):
+        t = trie.TrieBase()
+        self.assertRaises(TypeError, t._make_path, 0)
