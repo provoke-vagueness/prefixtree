@@ -94,3 +94,11 @@ class TestPrefixDictKeys(unittest.TestCase):
         pd = PrefixDict()
         pd['a'] = None
         pickle.dumps(pd, pickle.HIGHEST_PROTOCOL)
+
+    def test_startswith(self):
+        pd = PrefixDict()
+        keys = [''.join(combo) for combo in itertools.product('abc', repeat=3)]
+        for key in reversed(keys):
+            pd[key] = None
+        subset = [k for k in keys if k.startswith('ab')]
+        self.assertSequenceEqual(subset, list(pd.startswith('ab')))

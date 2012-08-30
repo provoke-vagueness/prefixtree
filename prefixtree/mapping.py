@@ -1,5 +1,6 @@
 "Prefix tree base dictionary object"
 from __future__ import absolute_import
+import itertools
 
 try:
     from collections import abc
@@ -54,3 +55,12 @@ class PrefixDict(TrieBase, abc.MutableMapping):
             self._values += 1
         leaf.value = value
         leaf.encoded = encoded
+
+    def startswith(self, base):
+        try:
+            path, encoded = self._make_path(base)
+            p1, p2 = itertools.tee(path)
+            root = self._search(p1, self._root)
+            return self._iter(root, tuple(p2))
+        except AttributeError:
+            raise KeyError(key)
