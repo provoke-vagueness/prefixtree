@@ -12,7 +12,7 @@ except ImportError:
 from prefixtree.mapping import PrefixDict
 
 
-class TestPrefixDictKeys(unittest.TestCase):
+class TestPrefixDict(unittest.TestCase):
 
     def insert_search_delete(self, keys, value=None):
         pd = PrefixDict()
@@ -24,7 +24,6 @@ class TestPrefixDictKeys(unittest.TestCase):
             val = key if value is None else value
             self.assertIn(key, pd)
             self.assertEqual(pd[key], val)
-        self.assertGreater(len(pd), 0)
         seen = set()
         for key in filterfalse(seen.__contains__, keys):
             seen.add(key)
