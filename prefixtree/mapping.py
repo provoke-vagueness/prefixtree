@@ -56,11 +56,45 @@ class PrefixDict(TrieBase, abc.MutableMapping):
         leaf.value = value
         leaf.encoded = encoded
 
-    def startswith(self, base):
+
+class PrefixSet(TrieBase, abc.MutableSet):
+    "Set object using prefix trie"
+
+    def __init__(self, *args):
+        TrieBase.__init__(self)
+        if len(args) > 1:
+            msg = "{0} expected at most 1 arguments, got 2"
+            raise TypeError(msg.format(self.__class__.__name__))
+        if len(args) == 1:
+            if isinstance(args[0], abc.Sequence):
+                for key in args[0]:
+                    self.add(key)
+            else:
+                msg = "{0} object is not iterable"
+                raise TypeError(msg.format(args[0].__class__.__name__))
+
+    def __contains__(self, key):
         try:
-            path, encoded = self._make_path(base)
-            p1, p2 = itertools.tee(path)
-            root = self._search(p1, self._root)
-            return self._iter(root, tuple(p2))
+            path, encoded = self._make_path(key)
+            leaf = self._search(path, self._root)
+            if hasattr(leaf, 'value'):
+                return True
         except AttributeError:
-            raise KeyError(key)
+            return False
+
+    def add(self, key):
+        path, encoded = self._make_path(key)
+        leaf = self._insert(path, self._root)
+        if not hasattr(leaf, 'value'):
+            self._values += 1
+        leaf.value = None
+        leaf.encoded = encoded
+
+    def discard(self, key):
+        try:
+            path, encoded = self._make_path(key)
+            leaf = self._delete(path, self._root)
+            del leaf.value, leaf.encoded
+            self._values -= 1
+        except AttributeError:
+            pass

@@ -2,11 +2,11 @@
 import array
 
 try:
-    from itertools import repeat, imap
+    from itertools import imap, repeat, tee
     iord = lambda s: imap(ord, s)
     char = chr
 except ImportError:
-    from itertools import repeat
+    from itertools import repeat, tee
     iord = iter
     char = lambda o: bytes(chr(o), encoding='latin1')
 
@@ -135,3 +135,12 @@ class TrieBase(object):
             for n2, p2 in self._walk(n1, p1):
                 yield n2, p2
         yield root, path
+
+    def startswith(self, base):
+        try:
+            path, encoded = self._make_path(base)
+            p1, p2 = tee(path)
+            root = self._search(p1, self._root)
+            return self._iter(root, tuple(p2))
+        except AttributeError:
+            raise KeyError(key)
