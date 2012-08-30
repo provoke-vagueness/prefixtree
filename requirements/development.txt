@@ -1,0 +1,4 @@
+distribute
+flake8
+pip
+sphinx
