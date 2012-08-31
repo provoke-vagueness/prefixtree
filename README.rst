@@ -13,6 +13,14 @@ frequently share the same prefix.
 In addition to minimising memory, tries are ordered. This allows prefix tree
 based dicitonaries and sets to support slicing operations.
 
+Status
+------
+
+*prefixtree* is still in an early stage of development, the trove classifier
+has for development status has been set to "Pre-Alpha". The most significant
+feature missing is the support for slices. Currently the only feature expoiting
+the trie is the *startswith()* method.
+
 PrefixDict
 ----------
 
