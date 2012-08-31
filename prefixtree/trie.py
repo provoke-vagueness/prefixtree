@@ -130,11 +130,11 @@ class TrieBase(object):
             return node
 
     def _walk(self, root, path):
+        yield root, path
         for k1, n1 in root:
             p1 = path + (k1,)
             for n2, p2 in self._walk(n1, p1):
                 yield n2, p2
-        yield root, path
 
     def startswith(self, base):
         try:

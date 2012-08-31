@@ -89,3 +89,10 @@ class TestPrefixSet(unittest.TestCase):
         pd = PrefixSet()
         pd.add('a')
         self.assertSequenceEqual([], list(pd.startswith('b')))
+
+    def test_sort_order(self):
+        pd = PrefixSet()
+        keys = ['', 'a', 'aa', 'ab', 'b', 'ba']
+        for key in reversed(keys):
+            pd.add(key)
+        self.assertSequenceEqual(keys, list(iter(pd)))

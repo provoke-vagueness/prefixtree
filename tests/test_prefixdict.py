@@ -106,3 +106,10 @@ class TestPrefixDict(unittest.TestCase):
         pd = PrefixDict()
         pd['a'] = None
         self.assertSequenceEqual([], list(pd.startswith('b')))
+
+    def test_sort_order(self):
+        pd = PrefixDict()
+        keys = ['', 'a', 'aa', 'ab', 'b', 'ba']
+        for key in reversed(keys):
+            pd[key] = None
+        self.assertSequenceEqual(keys, list(iter(pd)))
