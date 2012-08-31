@@ -84,3 +84,8 @@ class TestPrefixSet(unittest.TestCase):
             pd.add(key)
         subset = [k for k in keys if k.startswith('ab')]
         self.assertSequenceEqual(subset, list(pd.startswith('ab')))
+
+    def test_startswith_empty(self):
+        pd = PrefixSet()
+        pd.add('a')
+        self.assertSequenceEqual([], list(pd.startswith('b')))

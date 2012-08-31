@@ -143,4 +143,4 @@ class TrieBase(object):
             root = self._search(p1, self._root)
             return self._iter(root, tuple(p2))
         except AttributeError:
-            raise KeyError(key)
+            return iter([])

@@ -101,3 +101,8 @@ class TestPrefixDict(unittest.TestCase):
             pd[key] = None
         subset = [k for k in keys if k.startswith('ab')]
         self.assertSequenceEqual(subset, list(pd.startswith('ab')))
+
+    def test_startswith_empty(self):
+        pd = PrefixDict()
+        pd['a'] = None
+        self.assertSequenceEqual([], list(pd.startswith('b')))
