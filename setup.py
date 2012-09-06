@@ -4,6 +4,7 @@ use_setuptools()
 
 from setuptools import setup
 import re
+import sys
 
 def load_version(filename='prefixtree/version.py'):
     "Parse a __version__ number from a source file"
@@ -43,6 +44,7 @@ setup(
         'Operating System :: OS Independent',
         'Programming Language :: Python',
         'Programming Language :: Python :: 2',
+        'Programming Language :: Python :: 2.6',
         'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.2',
@@ -50,5 +52,6 @@ setup(
         'Programming Language :: Python :: Implementation :: PyPy',
         'Topic :: Software Development :: Libraries :: Python Modules'
     ],
-    test_suite = "tests"
+    tests_require = [] if sys.version_info[0] > 2 else ['unittest2'],
+    test_suite = "tests" if sys.version_info[0] > 2 else 'unittest2.collector'
 )

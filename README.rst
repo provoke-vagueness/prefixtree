@@ -54,9 +54,10 @@ object.
 Compatability
 -------------
 
-*prefixtree* is implemented to be compatible with Python 2.7 and Python 3.2. It
+*prefixtree* is implemented to be compatible with Python 2.x and Python 3.x. It
 has been tested against the following Python implementations:
 
+* CPython 2.6
 * CPython 2.7
 * CPython 3.2
 * PyPy 1.9.0
