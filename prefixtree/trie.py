@@ -124,13 +124,15 @@ class TrieBase(object):
                 key = node.path.decode('UTF-8')
             yield key
 
-    def _search(self, keys, node):
+    def _search(self, keys, node, exact=True):
         try:
             index = next(keys)
             child = node[index]
-            if child is None:
+            if child is None and exact:
                 raise AttributeError(index)
-            return self._search(keys, child)
+            elif child is None:
+                return node
+            return self._search(keys, child, exact)
         except StopIteration:
             return node
 
@@ -139,6 +141,13 @@ class TrieBase(object):
         for key, child in root:
             for descendant in self._walk(child):
                 yield descendant
+
+    def commonprefix(self, key):
+        path, encoded = self._make_path(key)
+        node = self._search(path, self._root, exact=False)
+        if hasattr(node, 'value') and node.encoded:
+            return node.path.decode('UTF-8')
+        return node.path
 
     def startswith(self, base):
         try:

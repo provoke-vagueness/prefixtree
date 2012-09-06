@@ -104,3 +104,15 @@ class TestPrefixSet(unittest.TestCase):
         for key in reversed(keys):
             pd.add(key)
         self.assertSequenceEqual(keys, list(iter(pd)))
+
+    def test_commonprefix_empty(self):
+        pd = PrefixSet(['abcd'])
+        self.assertEqual(b'', pd.commonprefix('efgh'))
+
+    def test_commonprefix_half(self):
+        pd = PrefixSet(['abcd'])
+        self.assertEqual(b'ab', pd.commonprefix('abef'))
+
+    def test_commonprefix_full(self):
+        pd = PrefixSet(['abcd'])
+        self.assertEqual('abcd', pd.commonprefix('abcd'))
