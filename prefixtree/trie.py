@@ -22,10 +22,15 @@ UNICODE_TYPE = str if str is not bytes else unicode
 class Node(abc.MutableMapping):
     "Node object for Trie"
 
-    def __init__(self):
+    def __init__(self, path=b''):
         self._branches = array.array('B', repeat(0xFF, 256))
         self._children = 0
         self._nodes = []
+        self._path = path
+
+    @property
+    def path(self):
+        return self._path
 
     def __contains__(self, key):
         offset = self._branches[key]
@@ -104,19 +109,19 @@ class TrieBase(object):
             index = next(keys)
             child = node[index]
             if child is None:
-                child = Node()
+                child = Node(node.path + char(index))
                 node[index] = child
             return self._insert(keys, child)
         except StopIteration:
             return node
 
     def _iter(self, node, path):
-        for node, path in self._walk(node, path):
+        for node in self._walk(node):
             if not hasattr(node, 'value'):
                 continue
-            key = b''.join(char(v) for v in path)
+            key = node.path
             if node.encoded:
-                key = key.decode('UTF-8')
+                key = node.path.decode('UTF-8')
             yield key
 
     def _search(self, keys, node):
@@ -129,12 +134,11 @@ class TrieBase(object):
         except StopIteration:
             return node
 
-    def _walk(self, root, path):
-        yield root, path
-        for k1, n1 in root:
-            p1 = path + (k1,)
-            for n2, p2 in self._walk(n1, p1):
-                yield n2, p2
+    def _walk(self, root):
+        yield root
+        for key, child in root:
+            for descendant in self._walk(child):
+                yield descendant
 
     def startswith(self, base):
         try:

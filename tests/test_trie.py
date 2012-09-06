@@ -48,6 +48,15 @@ class TestNode(unittest.TestCase):
             n[k] = v
         self.assertEqual(len(n), 128)
 
+    def test_set_path(self):
+        n = trie.Node('a')
+        self.assertEqual(n.path, 'a')
+
+    def test_path_readonly(self):
+        with self.assertRaises(AttributeError):
+            n = trie.Node()
+            n.path = 'a'
+
 
 class TestTrie(unittest.TestCase):
 
