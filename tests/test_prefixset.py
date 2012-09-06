@@ -17,7 +17,7 @@ except ImportError:
     # python 3.x
     from itertools import filterfalse
 
-from prefixtree.mapping import PrefixSet
+from prefixtree import PrefixSet
 
 
 class TestPrefixSet(unittest.TestCase):

@@ -17,7 +17,7 @@ except ImportError:
     # python 3.x
     from itertools import filterfalse
 
-from prefixtree.mapping import PrefixDict
+from prefixtree import PrefixDict
 
 
 class TestPrefixDict(unittest.TestCase):
