@@ -2,11 +2,13 @@
 import array
 
 try:
-    from itertools import imap, repeat, tee
+    # python 2.x
+    from itertools import chain, imap, repeat, tee
     iord = lambda s: imap(ord, s)
     char = chr
 except ImportError:
-    from itertools import repeat, tee
+    # python 3.x
+    from itertools import chain, repeat, tee
     iord = iter
     char = lambda o: bytes(chr(o), encoding='latin1')
 
@@ -75,7 +77,7 @@ class TrieBase(object):
         self._values = 0
 
     def __iter__(self):
-        return self._iter(self._root, tuple())
+        return self._iter(self._root)
 
     def __len__(self):
         return self._values
@@ -115,8 +117,10 @@ class TrieBase(object):
         except StopIteration:
             return node
 
-    def _iter(self, node, path):
-        for node in self._walk(node):
+    def _iter(self, node, start=tuple(), stop=tuple()):
+        start = chain(start, repeat(-1))
+        stop = chain(stop, repeat(256))
+        for node in self._walk(node, start, stop):
             if not hasattr(node, 'value'):
                 continue
             key = node.path
@@ -136,24 +140,25 @@ class TrieBase(object):
         except StopIteration:
             return node
 
-    def _walk(self, root):
+    def _walk(self, root, start, stop, lower=-1, upper=256):
+        current = ord(root.path[-1:]) if len(root.path) > 0 else -1
+        if not lower <= current <= upper:
+            raise StopIteration
         yield root
+        lower = next(start)
+        upper = next(stop)
         for key, child in root:
-            for descendant in self._walk(child):
+            for descendant in self._walk(child, start, stop, lower, upper):
                 yield descendant
 
     def commonprefix(self, key):
-        path, encoded = self._make_path(key)
+        path, _ = self._make_path(key)
         node = self._search(path, self._root, exact=False)
         if hasattr(node, 'value') and node.encoded:
             return node.path.decode('UTF-8')
         return node.path
 
     def startswith(self, base):
-        try:
-            path, encoded = self._make_path(base)
-            p1, p2 = tee(path)
-            root = self._search(p1, self._root)
-            return self._iter(root, tuple(p2))
-        except AttributeError:
-            return iter([])
+        path, _ = self._make_path(base)
+        start, stop = tee(path)
+        return self._iter(self._root, start, stop)
