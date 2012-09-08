@@ -62,16 +62,24 @@ class TestTrie(unittest.TestCase):
 
     def test_byte_path(self):
         t = trie.TrieBase()
-        path, encoded = t._make_path(b'ab')
+        path, encoded = t.prepare_key(b'ab')
         self.assertFalse(encoded)
-        self.assertSequenceEqual(list(path), [97, 98])
+        self.assertSequenceEqual(list(trie.iord(path)), [97, 98])
 
     def test_unicode_path(self):
         t = trie.TrieBase()
-        path, encoded = t._make_path(b'ab'.decode('UTF-8'))
+        path, encoded = t.prepare_key(b'ab'.decode('UTF-8'))
         self.assertTrue(encoded)
-        self.assertSequenceEqual(list(path), [97, 98])
+        self.assertSequenceEqual(list(trie.iord(path)), [97, 98])
 
     def test_invalid_path(self):
         t = trie.TrieBase()
-        self.assertRaises(TypeError, t._make_path, 0)
+        self.assertRaises(TypeError, t.prepare_key, 0)
+
+    def test_restore_bytes(self):
+        t = trie.TrieBase()
+        self.assertEqual(b'ab', t.restore_key(b'ab', False))
+
+    def test_restore_unicode(self):
+        t = trie.TrieBase()
+        self.assertEqual(b'ab'.decode('UTF-8'), t.restore_key(b'ab', True))

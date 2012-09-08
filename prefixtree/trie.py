@@ -82,17 +82,6 @@ class TrieBase(object):
     def __len__(self):
         return self._values
 
-    def _make_path(self, key):
-        encoded = False
-        if isinstance(key, UNICODE_TYPE):
-            encoded = True
-            key = key.encode('UTF-8')
-        if isinstance(key, STRING_TYPE):
-            path = iord(key)
-            return path, encoded
-        else:
-            raise TypeError("key must be string or bytes")
-
     def _delete(self, keys, node):
         try:
             index = next(keys)
@@ -123,10 +112,7 @@ class TrieBase(object):
         for node in self._walk(node, start, stop):
             if not hasattr(node, 'value'):
                 continue
-            key = node.path
-            if node.encoded:
-                key = node.path.decode('UTF-8')
-            yield key
+            yield self.restore_key(node.path, node.meta)
 
     def _search(self, keys, node, exact=True):
         try:
@@ -151,14 +137,27 @@ class TrieBase(object):
             for descendant in self._walk(child, start, stop, lower, upper):
                 yield descendant
 
-    def commonprefix(self, key):
-        path, _ = self._make_path(key)
-        node = self._search(path, self._root, exact=False)
-        if hasattr(node, 'value') and node.encoded:
-            return node.path.decode('UTF-8')
+    def prepare_key(self, key):
+        encoded = False
+        if isinstance(key, UNICODE_TYPE):
+            encoded = True
+            key = key.encode('UTF-8')
+        if isinstance(key, STRING_TYPE):
+            return key, encoded
+        else:
+            raise TypeError("key must be string or bytes")
+
+    def restore_key(self, key, encoded):
+        return key.decode('UTF-8') if encoded else key
+
+    def commonprefix(self, key, restore=True):
+        path, _ = self.prepare_key(key)
+        node = self._search(iord(path), self._root, exact=False)
+        if hasattr(node, 'value') and restore:
+            return self.restore_key(node.path, node.meta)
         return node.path
 
     def startswith(self, base):
-        path, _ = self._make_path(base)
-        start, stop = tee(path)
+        path, _ = self.prepare_key(base)
+        start, stop = tee(iord(path))
         return self._iter(self._root, start, stop)

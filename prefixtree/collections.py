@@ -3,11 +3,13 @@ from __future__ import absolute_import
 import itertools
 
 try:
+    # python 3.3+
     from collections import abc
 except ImportError:
+    # python 3.2 
     import collections as abc
 
-from prefixtree.trie import TrieBase
+from prefixtree.trie import TrieBase, iord
 
 
 class PrefixDict(TrieBase, abc.MutableMapping):
@@ -33,28 +35,28 @@ class PrefixDict(TrieBase, abc.MutableMapping):
 
     def __delitem__(self, key):
         try:
-            path, encoded = self._make_path(key)
-            leaf = self._delete(path, self._root)
-            del leaf.value, leaf.encoded
+            path, _ = self.prepare_key(key)
+            leaf = self._delete(iord(path), self._root)
+            del leaf.value, leaf.meta
             self._values -= 1
         except AttributeError:
             raise KeyError(key)
 
     def __getitem__(self, key):
         try:
-            path, encoded = self._make_path(key)
-            leaf = self._search(path, self._root)
+            path, _ = self.prepare_key(key)
+            leaf = self._search(iord(path), self._root)
             return leaf.value
         except AttributeError:
             raise KeyError(key)
 
     def __setitem__(self, key, value):
-        path, encoded = self._make_path(key)
-        leaf = self._insert(path, self._root)
+        path, meta = self.prepare_key(key)
+        leaf = self._insert(iord(path), self._root)
         if not hasattr(leaf, 'value'):
             self._values += 1
         leaf.value = value
-        leaf.encoded = encoded
+        leaf.meta = meta
 
 
 class PrefixSet(TrieBase, abc.MutableSet):
@@ -75,26 +77,26 @@ class PrefixSet(TrieBase, abc.MutableSet):
 
     def __contains__(self, key):
         try:
-            path, encoded = self._make_path(key)
-            leaf = self._search(path, self._root)
+            path, _ = self.prepare_key(key)
+            leaf = self._search(iord(path), self._root)
             if hasattr(leaf, 'value'):
                 return True
         except AttributeError:
             return False
 
     def add(self, key):
-        path, encoded = self._make_path(key)
-        leaf = self._insert(path, self._root)
+        path, meta = self.prepare_key(key)
+        leaf = self._insert(iord(path), self._root)
         if not hasattr(leaf, 'value'):
             self._values += 1
         leaf.value = None
-        leaf.encoded = encoded
+        leaf.meta = meta
 
     def discard(self, key):
         try:
-            path, encoded = self._make_path(key)
-            leaf = self._delete(path, self._root)
-            del leaf.value, leaf.encoded
+            path, _ = self.prepare_key(key)
+            leaf = self._delete(iord(path), self._root)
+            del leaf.value, leaf.meta
             self._values -= 1
         except AttributeError:
             pass
