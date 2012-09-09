@@ -1,3 +1,5 @@
+import sys
+
 try:
     # python 2.x
     import unittest2 as unittest
@@ -56,6 +58,13 @@ class TestNode(unittest.TestCase):
         with self.assertRaises(AttributeError):
             n = trie.Node()
             n.path = 'a'
+
+    @unittest.skipIf(sys.version_info[:2] < (3, 3),
+            "slots unsupported before Py 3.3")
+    def test_slots(self):
+        with self.assertRaises(AttributeError):
+            n = trie.Node()
+            n.data = None
 
 
 class TestTrie(unittest.TestCase):

@@ -24,6 +24,8 @@ UNICODE_TYPE = str if str is not bytes else unicode
 class Node(abc.MutableMapping):
     "Node object for Trie"
 
+    __slots__ = ('value', 'meta', '_branches', '_children', '_nodes', '_path')
+
     def __init__(self, path=b''):
         self._branches = array.array('B', repeat(0xFF, 256))
         self._children = 0
