@@ -43,6 +43,10 @@ class PrefixDict(TrieBase, abc.MutableMapping):
             raise KeyError(key)
 
     def __getitem__(self, key):
+        if isinstance(key, slice):
+            start = iord(self.prepare_key(key.start)[0])
+            stop = iord(self.prepare_key(key.stop)[0])
+            return self._iter_values(self._root, start, stop)
         try:
             path, _ = self.prepare_key(key)
             leaf = self._search(iord(path), self._root)

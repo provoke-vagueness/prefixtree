@@ -79,7 +79,7 @@ class TrieBase(object):
         self._values = 0
 
     def __iter__(self):
-        return self._iter(self._root)
+        return self._iter_keys(self._root)
 
     def __len__(self):
         return self._values
@@ -112,9 +112,19 @@ class TrieBase(object):
         start = chain(start, repeat(-1))
         stop = chain(stop, repeat(256))
         for node in self._walk(node, start, stop):
+            yield node
+
+    def _iter_keys(self, node, start=tuple(), stop=tuple()):
+        for node in self._iter(node, start, stop):
             if not hasattr(node, 'value'):
                 continue
             yield self.restore_key(node.path, node.meta)
+
+    def _iter_values(self, node, start=tuple(), stop=tuple()):
+        for node in self._iter(node, start, stop):
+            if not hasattr(node, 'value'):
+                continue
+            yield node.value
 
     def _search(self, keys, node, exact=True):
         try:
@@ -162,4 +172,4 @@ class TrieBase(object):
     def startswith(self, base):
         path, _ = self.prepare_key(base)
         start, stop = tee(iord(path))
-        return self._iter(self._root, start, stop)
+        return self._iter_keys(self._root, start, stop)

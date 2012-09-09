@@ -133,3 +133,26 @@ class TestPrefixDict(unittest.TestCase):
     def test_commonprefix_full(self):
         pd = PrefixDict(abcd=None)
         self.assertEqual('abcd', pd.commonprefix('abcd'))
+
+    def test_slice_get_narrow(self):
+        pd = PrefixDict()
+        keys = [''.join(combo) for combo in itertools.product('abc', repeat=3)]
+        for key in reversed(keys):
+            pd[key] = key.upper()
+        subset = [k.upper() for k in keys if k.startswith('ab')]
+        self.assertSequenceEqual(subset, list(pd['ab':'ab']))
+
+    def test_slice_get_wide(self):
+        pd = PrefixDict()
+        keys = [''.join(combo) for combo in itertools.product('abc', repeat=3)]
+        for key in reversed(keys):
+            pd[key] = key.upper()
+        subset = [k.upper() for k in keys if not k.startswith('c')]
+        self.assertSequenceEqual(subset, list(pd['a':'b']))
+
+    def test_slice_get_empty(self):
+        pd = PrefixDict()
+        keys = [''.join(combo) for combo in itertools.product('abc', repeat=3)]
+        for key in reversed(keys):
+            pd[key] = key.upper()
+        self.assertSequenceEqual([], list(pd['d':'z']))
