@@ -190,3 +190,19 @@ class TestPrefixDict(unittest.TestCase):
         pd = PrefixDict()
         with self.assertRaises(ValueError):
             pd[::-2]
+
+    def test_slice_open_start(self):
+        pd = PrefixDict()
+        keys = [''.join(combo) for combo in itertools.product('abc', repeat=3)]
+        for key in reversed(keys):
+            pd[key] = key.upper()
+        subset = [k.upper() for k in keys if not k.startswith('c')]
+        self.assertSequenceEqual(subset, list(pd[:'b']))
+
+    def test_slice_open_end(self):
+        pd = PrefixDict()
+        keys = [''.join(combo) for combo in itertools.product('abc', repeat=3)]
+        for key in reversed(keys):
+            pd[key] = key.upper()
+        subset = [k.upper() for k in keys if not k.startswith('a')]
+        self.assertSequenceEqual(subset, list(pd['b':]))

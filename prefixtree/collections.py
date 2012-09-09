@@ -51,14 +51,23 @@ class PrefixDict(TrieBase, abc.MutableMapping):
             except AttributeError:
                 raise KeyError(key)
         else:
+            if key.start is not None:
+                start = iord(self.prepare_key(key.start)[0])
+            else:
+                start = tuple()
+
+            if key.stop is not None:
+                stop = iord(self.prepare_key(key.stop)[0])
+            else:
+                stop = tuple()
+
             if key.step is None or key.step == 1:
                 reverse = False
             elif key.step == -1:
                 reverse = True
             else:
                 raise ValueError("slice step must be 1, -1 or None")
-            start = iord(self.prepare_key(key.start)[0])
-            stop = iord(self.prepare_key(key.stop)[0])
+
             return self._iter_values(self._root, start, stop, reverse)
 
     def __setitem__(self, key, value):
