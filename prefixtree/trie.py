@@ -61,6 +61,12 @@ class Node(abc.MutableMapping):
     def __len__(self):
         return self._children
 
+    def __reversed__(self):
+        for key, offset in enumerate(reversed(self._branches)):
+            if offset >= len(self._nodes):
+                continue
+            yield (255 - key, self._nodes[offset])
+
     def __setitem__(self, key, node):
         current = self._branches[key]
         if current < len(self._nodes):
@@ -83,6 +89,9 @@ class TrieBase(object):
 
     def __len__(self):
         return self._values
+
+    def __reversed__(self):
+        return self._iter_keys(self._root, reverse=True)
 
     def _delete(self, keys, node):
         try:
@@ -108,20 +117,21 @@ class TrieBase(object):
         except StopIteration:
             return node
 
-    def _iter(self, node, start=tuple(), stop=tuple()):
+    def _iter(self, node, start=tuple(), stop=tuple(), reverse=False):
         start = chain(start, repeat(-1))
         stop = chain(stop, repeat(256))
-        for node in self._walk(node, start, stop):
+        direction = iter if not reverse else reversed
+        for node in self._walk(node, start, stop, iterate=direction):
             yield node
 
-    def _iter_keys(self, node, start=tuple(), stop=tuple()):
-        for node in self._iter(node, start, stop):
+    def _iter_keys(self, node, start=tuple(), stop=tuple(), reverse=False):
+        for node in self._iter(node, start, stop, reverse):
             if not hasattr(node, 'value'):
                 continue
             yield self.restore_key(node.path, node.meta)
 
-    def _iter_values(self, node, start=tuple(), stop=tuple()):
-        for node in self._iter(node, start, stop):
+    def _iter_values(self, node, start=tuple(), stop=tuple(), reverse=False):
+        for node in self._iter(node, start, stop, reverse):
             if not hasattr(node, 'value'):
                 continue
             yield node.value
@@ -138,15 +148,16 @@ class TrieBase(object):
         except StopIteration:
             return node
 
-    def _walk(self, root, start, stop, lower=-1, upper=256):
+    def _walk(self, root, start, stop, lower=-1, upper=256, iterate=iter):
         current = ord(root.path[-1:]) if len(root.path) > 0 else -1
         if not lower <= current <= upper:
             raise StopIteration
         yield root
         lower = next(start)
         upper = next(stop)
-        for key, child in root:
-            for descendant in self._walk(child, start, stop, lower, upper):
+        for key, child in iterate(root):
+            for descendant in self._walk(child, start, stop,
+                                        lower, upper, iterate):
                 yield descendant
 
     def prepare_key(self, key):
@@ -169,7 +180,7 @@ class TrieBase(object):
             return self.restore_key(node.path, node.meta)
         return node.path
 
-    def startswith(self, base):
+    def startswith(self, base, reverse=False):
         path, _ = self.prepare_key(base)
         start, stop = tee(iord(path))
-        return self._iter_keys(self._root, start, stop)
+        return self._iter_keys(self._root, start, stop, reverse)

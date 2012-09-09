@@ -80,6 +80,13 @@ class TestPrefixSet(unittest.TestCase):
             pd.add(key)
         self.assertSequenceEqual(keys, list(iter(pd)))
 
+    def test_reversed(self):
+        pd = PrefixSet()
+        keys = [''.join(combo) for combo in itertools.product('abc', repeat=3)]
+        for key in keys:
+            pd.add(key)
+        self.assertSequenceEqual(list(reversed(keys)), list(reversed(pd)))
+
     def test_pickle(self):
         pd = PrefixSet()
         pd.add('a')
@@ -92,6 +99,15 @@ class TestPrefixSet(unittest.TestCase):
             pd.add(key)
         subset = [k for k in keys if k.startswith('ab')]
         self.assertSequenceEqual(subset, list(pd.startswith('ab')))
+
+    def test_startswith(self):
+        pd = PrefixSet()
+        keys = [''.join(combo) for combo in itertools.product('abc', repeat=3)]
+        for key in keys:
+            pd.add(key)
+        subset = [k for k in keys if k.startswith('ab')]
+        self.assertSequenceEqual(list(reversed(subset)),
+                list(pd.startswith('ab', reverse=True)))
 
     def test_startswith_empty(self):
         pd = PrefixSet()

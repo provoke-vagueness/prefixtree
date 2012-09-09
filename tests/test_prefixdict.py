@@ -97,6 +97,13 @@ class TestPrefixDict(unittest.TestCase):
             pd[key] = None
         self.assertSequenceEqual(keys, list(iter(pd)))
 
+    def test_reversed(self):
+        pd = PrefixDict()
+        keys = [''.join(combo) for combo in itertools.product('abc', repeat=3)]
+        for key in keys:
+            pd[key] = None
+        self.assertSequenceEqual(list(reversed(keys)), list(reversed(pd)))
+
     def test_pickle(self):
         pd = PrefixDict()
         pd['a'] = None
@@ -114,6 +121,15 @@ class TestPrefixDict(unittest.TestCase):
         pd = PrefixDict()
         pd['a'] = None
         self.assertSequenceEqual([], list(pd.startswith('b')))
+
+    def test_startswith_reversed(self):
+        pd = PrefixDict()
+        keys = [''.join(combo) for combo in itertools.product('abc', repeat=3)]
+        for key in keys:
+            pd[key] = None
+        subset = [k for k in keys if k.startswith('ab')]
+        self.assertSequenceEqual(list(reversed(subset)),
+                list(pd.startswith('ab', reverse=True)))
 
     def test_sort_order(self):
         pd = PrefixDict()
