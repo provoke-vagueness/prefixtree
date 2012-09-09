@@ -33,14 +33,43 @@ class PrefixDict(TrieBase, abc.MutableMapping):
         for key, value in kwargs.items():
             self[key] = value
 
+    def _build_slice(self, key):
+        if key.start is not None:
+            start = iord(self.prepare_key(key.start)[0])
+        else:
+            start = tuple()
+
+        if key.stop is not None:
+            stop = iord(self.prepare_key(key.stop)[0])
+        else:
+            stop = tuple()
+
+        if key.step is None or key.step == 1:
+            reverse = False
+        elif key.step == -1:
+            reverse = True
+        else:
+            raise ValueError("slice step must be 1, -1 or None")
+
+        return slice(start, stop, reverse)
+
     def __delitem__(self, key):
-        try:
-            path, _ = self.prepare_key(key)
-            leaf = self._delete(iord(path), self._root)
-            del leaf.value, leaf.meta
-            self._values -= 1
-        except AttributeError:
-            raise KeyError(key)
+        if not isinstance(key, slice):
+            try:
+                path, _ = self.prepare_key(key)
+                leaf = self._delete(iord(path), self._root)
+                del leaf.value, leaf.meta
+                self._values -= 1
+            except AttributeError:
+                raise KeyError(key)
+        else:
+            cut = self._build_slice(key)
+            for node in self._iter(self._root, cut.start, cut.stop, cut.step):
+                if not hasattr(node, 'value'):
+                    continue
+                leaf = self._delete(iord(node.path), self._root)
+                del leaf.value, leaf.meta
+                self._values -= 1
 
     def __getitem__(self, key):
         if not isinstance(key, slice):
@@ -51,24 +80,8 @@ class PrefixDict(TrieBase, abc.MutableMapping):
             except AttributeError:
                 raise KeyError(key)
         else:
-            if key.start is not None:
-                start = iord(self.prepare_key(key.start)[0])
-            else:
-                start = tuple()
-
-            if key.stop is not None:
-                stop = iord(self.prepare_key(key.stop)[0])
-            else:
-                stop = tuple()
-
-            if key.step is None or key.step == 1:
-                reverse = False
-            elif key.step == -1:
-                reverse = True
-            else:
-                raise ValueError("slice step must be 1, -1 or None")
-
-            return self._iter_values(self._root, start, stop, reverse)
+            cut = self._build_slice(key)
+            return self._iter_values(self._root, cut.start, cut.stop, cut.step)
 
     def __setitem__(self, key, value):
         path, meta = self.prepare_key(key)
