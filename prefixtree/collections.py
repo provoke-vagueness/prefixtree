@@ -84,12 +84,24 @@ class PrefixDict(TrieBase, abc.MutableMapping):
             return self._iter_values(self._root, cut.start, cut.stop, cut.step)
 
     def __setitem__(self, key, value):
-        path, meta = self.prepare_key(key)
-        leaf = self._insert(iord(path), self._root)
-        if not hasattr(leaf, 'value'):
-            self._values += 1
-        leaf.value = value
-        leaf.meta = meta
+        if not isinstance(key, slice):
+            path, meta = self.prepare_key(key)
+            leaf = self._insert(iord(path), self._root)
+            if not hasattr(leaf, 'value'):
+                self._values += 1
+            leaf.value = value
+            leaf.meta = meta
+        else:
+            cut = self._build_slice(key)
+            values = iter(value)
+            for node in self._iter(self._root, cut.start, cut.stop, cut.step):
+                if not hasattr(node, 'value'):
+                    continue
+                try:
+                    node.value = next(values)
+                except StopIteration:
+                    msg = "Fewer new elements to than slice length"
+                    raise ValueError(msg)
 
 
 class PrefixSet(TrieBase, abc.MutableSet):

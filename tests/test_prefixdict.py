@@ -225,3 +225,30 @@ class TestPrefixDict(unittest.TestCase):
             pd[key] = None
         del pd['e':]
         self.assertSequenceEqual(keys, list(pd))
+
+    def test_slice_set(self):
+        pd = PrefixDict()
+        keys = [''.join(combo) for combo in itertools.product('abc', repeat=3)]
+        for key in reversed(keys):
+            pd[key] = key
+        newvalues = [k for k in keys if k.startswith('ab')]
+        pd['ab':'ab'] = newvalues
+        self.assertSequenceEqual(newvalues, list(pd['ab':'ab']))
+
+    def test_slice_set_short(self):
+        pd = PrefixDict()
+        keys = [''.join(combo) for combo in itertools.product('abc', repeat=3)]
+        for key in reversed(keys):
+            pd[key] = key
+        newvalues = [k for k in keys if k.startswith('ab')]
+        with self.assertRaises(ValueError):
+            pd['ab':'ab'] = newvalues[:-1]
+
+    def test_slice_set_long(self):
+        pd = PrefixDict()
+        keys = [''.join(combo) for combo in itertools.product('abc', repeat=3)]
+        for key in reversed(keys):
+            pd[key] = key
+        newvalues = [k for k in keys if k.startswith('ab')]
+        pd['ab':'ab'] = newvalues + [None]
+        self.assertNotIn(None, pd['ab':'ab'])
