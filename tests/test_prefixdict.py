@@ -172,3 +172,21 @@ class TestPrefixDict(unittest.TestCase):
         for key in reversed(keys):
             pd[key] = key.upper()
         self.assertSequenceEqual([], list(pd['d':'z']))
+
+    def test_slice_get_reverse(self):
+        pd = PrefixDict()
+        keys = [''.join(combo) for combo in itertools.product('abc', repeat=3)]
+        for key in reversed(keys):
+            pd[key] = key.upper()
+        subset = [k.upper() for k in keys if not k.startswith('c')]
+        self.assertSequenceEqual(list(reversed(subset)), list(pd['a':'b':-1]))
+
+    def test_slice_invalid_positive_step(self):
+        pd = PrefixDict()
+        with self.assertRaises(ValueError):
+            pd[::2]
+
+    def test_slice_invalid_negative_step(self):
+        pd = PrefixDict()
+        with self.assertRaises(ValueError):
+            pd[::-2]
