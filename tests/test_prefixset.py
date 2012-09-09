@@ -132,3 +132,8 @@ class TestPrefixSet(unittest.TestCase):
     def test_commonprefix_full(self):
         pd = PrefixSet(['abcd'])
         self.assertEqual('abcd', pd.commonprefix('abcd'))
+
+    def test_iter_post_el(self):
+        pd = PrefixSet(['a', 'b', 'c'])
+        pd.remove('b')
+        list(pd)

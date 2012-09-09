@@ -252,3 +252,8 @@ class TestPrefixDict(unittest.TestCase):
         newvalues = [k for k in keys if k.startswith('ab')]
         pd['ab':'ab'] = newvalues + [None]
         self.assertNotIn(None, pd['ab':'ab'])
+
+    def test_iter_post_del(self):
+        pd = PrefixDict(a=0, b=1, c=2)
+        del pd['b']
+        list(pd)

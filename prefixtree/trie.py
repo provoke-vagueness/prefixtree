@@ -56,7 +56,9 @@ class Node(abc.MutableMapping):
         for key, offset in enumerate(self._branches):
             if offset >= len(self._nodes):
                 continue
-            yield (key, self._nodes[offset])
+            node = self._nodes[offset]
+            if node is not None:
+                yield (key, node)
 
     def __len__(self):
         return self._children
@@ -65,7 +67,9 @@ class Node(abc.MutableMapping):
         for key, offset in enumerate(reversed(self._branches)):
             if offset >= len(self._nodes):
                 continue
-            yield (255 - key, self._nodes[offset])
+            node = self._nodes[offset]
+            if node is not None:
+                yield (255 - key, node)
 
     def __setitem__(self, key, node):
         current = self._branches[key]
