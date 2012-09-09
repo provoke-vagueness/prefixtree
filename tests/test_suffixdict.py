@@ -20,7 +20,7 @@ class SuffixDict(PrefixDict):
         return key[::-1]
 
     def commonsuffix(self, key):
-        path = PrefixDict.commonprefix(self, key, restore=False)
+        path = PrefixDict.commonprefix(self, key, restore_key=False)
         return path[::-1]
 
     endswith = PrefixDict.startswith

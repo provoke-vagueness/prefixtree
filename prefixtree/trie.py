@@ -173,10 +173,10 @@ class TrieBase(object):
     def restore_key(self, key, encoded):
         return key.decode('UTF-8') if encoded else key
 
-    def commonprefix(self, key, restore=True):
+    def commonprefix(self, key, restore_key=True):
         path, _ = self.prepare_key(key)
         node = self._search(iord(path), self._root, exact=False)
-        if hasattr(node, 'value') and restore:
+        if hasattr(node, 'value') and restore_key:
             return self.restore_key(node.path, node.meta)
         return node.path
 
