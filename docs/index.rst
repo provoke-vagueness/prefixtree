@@ -1,22 +1,43 @@
-.. prefixtree documentation master file, created by
-   sphinx-quickstart on Fri Apr 20 20:27:52 2012.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
+Introducing prefixtree
+======================
 
-Welcome to prefixtree's documentation!
-======================================
+*prefixtree* implements
+Python :class:`dict` and
+:class:`set` like objects using
+a `trie`_ or
+prefix tree.
+Tries are ordered,
+tree based data structures.
+Using tries adds
+unique features to
+dict and set like
+objects:
 
-Contents:
+* Keys are returned in sorted order.
+* Slice operations for getting, setting and deleting values.
+* Reduced memory overhead when keys share common prefixes.
+
+Python's builtin :class:`dict` is
+implemented using a hash table.
+While they are
+an excellent,
+general purpose container
+that have been
+heavily optimised.
+There are use cases where
+tree based containers
+are a better solution.
+
+Table of Contents
+=================
 
 .. toctree::
    :maxdepth: 2
 
+   overview
+   guide
+   issues
+   api
 
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
-
+.. _trie: http://en.wikipedia.org/wiki/Trie
+.. _hash table: http://en.wikipedia.org/wiki/Hash_table
