@@ -130,6 +130,10 @@ class PrefixSet(TrieBase, abc.MutableSet):
             return False
 
     def add(self, key):
+        """Add an element to a set.
+
+        This has no effect if the element is already present.
+        """
         path, meta = self.prepare_key(key)
         leaf = self._insert(iord(path), self._root)
         if not hasattr(leaf, 'value'):
@@ -138,6 +142,10 @@ class PrefixSet(TrieBase, abc.MutableSet):
         leaf.meta = meta
 
     def discard(self, key):
+        """Remove an element from a set if it is a member.
+
+        If the element is not a member, do nothing.
+        """
         try:
             path, _ = self.prepare_key(key)
             leaf = self._delete(iord(path), self._root)

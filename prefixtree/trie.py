@@ -83,6 +83,7 @@ class Node(abc.MutableMapping):
 
 
 class TrieBase(object):
+    "Base class for collection classes implemented using a Trie"
 
     def __init__(self):
         self._root = Node()
@@ -165,6 +166,11 @@ class TrieBase(object):
                 yield descendant
 
     def prepare_key(self, key):
+        """Prepare key for use by Trie.
+
+        Encodes unicode strings to byte strings. If key is not a byte or
+        unicode string, raises ValueError.
+        """
         encoded = False
         if isinstance(key, UNICODE_TYPE):
             encoded = True
@@ -175,9 +181,14 @@ class TrieBase(object):
             raise TypeError("key must be string or bytes")
 
     def restore_key(self, key, encoded):
+        """Restores key to user supplied state.
+
+        Decodes key if the key was originally provided as a unicode string.
+        """
         return key.decode('UTF-8') if encoded else key
 
     def commonprefix(self, key, restore_key=True):
+        "Return longest common prefix between key and current keys."
         path, _ = self.prepare_key(key)
         node = self._search(iord(path), self._root, exact=False)
         if hasattr(node, 'value') and restore_key:
@@ -185,6 +196,7 @@ class TrieBase(object):
         return node.path
 
     def startswith(self, base, reverse=False):
+        "Iterate over all keys with matching prefix."
         path, _ = self.prepare_key(base)
         start, stop = tee(iord(path))
         return self._iter_keys(self._root, start, stop, reverse)
