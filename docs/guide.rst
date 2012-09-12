@@ -19,7 +19,7 @@ Tries
 Tries,
 also known as `prefix trees`_,
 are an ordered tree data structure.
-Using a trie minimises the ammount
+Trie minimise the ammount
 of memory required
 to store keys if
 the keys frequently share
@@ -32,6 +32,17 @@ are ordered.
 This allows prefix tree based
 dicts and sets to
 support slicing operations.
+
+.. note::
+
+   Memory minimisation is
+   an academic property of
+   the data structure.
+   Comparing a
+   pure Python trie to
+   an optimised C hash table may
+   not demonstrate any
+   memory savings.
 
 Keys
 ^^^^

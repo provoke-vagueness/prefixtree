@@ -8,7 +8,6 @@ compared to the builtin dict and set objects.
 
 * Keys are returned in sorted order.
 * Slice operations for getting, setting and deleting values.
-* Reduced memory overhead when keys share common prefixes.
 
 Trie based collections are useful when ordered access to key and values is a
 requirement.

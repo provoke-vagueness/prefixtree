@@ -15,7 +15,6 @@ objects:
 
 * Keys are returned in sorted order.
 * Slice operations for getting, setting and deleting values.
-* Reduced memory overhead when keys share common prefixes.
 
 Python's builtin :class:`dict` is
 implemented using a hash table.
