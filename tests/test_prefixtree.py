@@ -9,11 +9,13 @@ except ImportError:
 
 import prefixtree
 
+PEP386 = r"""^(?P<version>\d+\.\d+)(?P<extraversion>(?:\.\d+)*)(?:(?P<prerel>[abc]|rc)(?P<prerelversion>\d+(?:\.\d+)*))?(?P<postdev>(\.post(?P<post>\d+))?(\.dev(?P<dev>\d+))?)?$"""
+
 
 class TestPrefixTree(unittest.TestCase):
 
-    def test_has_version(self):
-        self.assertTrue(prefixtree.__version__)
+    def test_valid_version(self):
+        self.assertRegex(prefixtree.__version__, PEP386)
 
     def test_readme(self):
         doctest.testfile('../README.rst')
