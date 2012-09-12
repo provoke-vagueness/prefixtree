@@ -14,7 +14,7 @@ using `prefix trees`_,
 or tries.
 
 Tries
------
+^^^^^
 
 Tries,
 also known as `prefix trees`_,
@@ -34,7 +34,7 @@ dicts and sets to
 support slicing operations.
 
 Keys
-----
+^^^^
 
 The keys used in
 *prefixtree* collections
@@ -48,6 +48,39 @@ Because of this
 ``'\u2641'`` and
 ``b'\xe2\x99\x81'`` are
 equivalent keys.
+
+Installation
+------------
+
+Use `pip`_ to
+install *prefixtree* from
+`PyPI`_. ::
+
+    $ pip install --use-mirrors filemagic
+
+The ``--use-mirrors``
+argument is optional.
+However,
+it is a good idea to
+use this option as
+it both reduces the
+load on `PyPI`_ as well as
+continues to work if
+`PyPI`_ is unavailable.
+
+The :mod:`prefixtree` module
+should now be
+availabe from
+the Python shell.
+
+.. doctest::
+
+    >>> import prefixtree
+
+The sections bellow will
+describe how to use
+:class:`~prefixtree.PrefixDict` and
+:class:`~prefixtree.PrefixSet`.
 
 PrefixDict
 ----------
@@ -214,4 +247,6 @@ the :class:`collections.MutableSet`.
 the same construction methods as
 the builtin :class:`set` object.
 
+.. _PyPI: http://pypi.python.org
+.. _pip: http://pypi.python.org/pypi/pip
 .. _prefix trees: http://en.wikipedia.org/wiki/Trie
