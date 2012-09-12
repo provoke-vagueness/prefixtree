@@ -15,7 +15,10 @@ PEP386 = r"""^(?P<version>\d+\.\d+)(?P<extraversion>(?:\.\d+)*)(?:(?P<prerel>[ab
 class TestPrefixTree(unittest.TestCase):
 
     def test_valid_version(self):
-        self.assertRegex(prefixtree.__version__, PEP386)
+        if hasattr(self, 'assertRegex'):
+            self.assertRegex(prefixtree.__version__, PEP386)
+        else:
+            self.assertRegexpMatches(prefixtree.__version__, PEP386)
 
     def test_readme(self):
         doctest.testfile('../README.rst')
