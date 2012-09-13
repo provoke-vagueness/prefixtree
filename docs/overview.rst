@@ -39,4 +39,49 @@ Python implementations:
 Continuous integration testing
 is provided by `Travis CI`_.
 
+Benchmarks
+----------
+
+The following short script has
+been used to benchmark the
+memory usage and
+cpu utilisation of
+:class:`~prefixtree.PrefixDict`.
+
+.. literalinclude:: benchmark_trie.py
+   :emphasize-lines: 9,14,17
+
+The results for
+:class:`~prefixtree.PrefixDict`
+have been compared to
+benchmarks for
+the builtin :class:`dict` using:
+
+.. literalinclude:: benchmark_dict.py
+   :emphasize-lines: 12,15
+
+The results of
+the benchmarks when
+run using:
+
+* CPython 3.2, 64-bit
+* Max OSX 10.7.4
+* 2010 Macbook Pro
+
+Show that *prefixtree* is
+200 times slower than
+the builtin :class:`dict` and requires
+10 times the memory.
+
+============== ====== ========
+Collection     Memory Run Time
+============== ====== ========
+**dict**       40MB   0.34s
+**PrefixDict** 453MB  67s
+============== ====== ========
+
+The benchamrks values were
+averaged from three runs of
+each benchmark script.
+
 .. _Travis CI: http://travis-ci.org/#!/aliles/prefixtree
