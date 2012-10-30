@@ -1,6 +1,5 @@
 
 
-
 #ifndef Py_TRIEOBJECT_H
 #define Py_TRIEOBJECT_H
 #ifdef __cplusplus
@@ -20,6 +19,12 @@ typedef struct {
     Py_ssize_t allocated;
 
 } PyTrieNodeObject;
+
+PyAPI_DATA(PyTypeObject) PyTrieNodeObject_Type;
+
+#ifdef __cplusplus
+}
+#endif
 #endif
 
 
