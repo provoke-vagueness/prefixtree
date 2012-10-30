@@ -61,7 +61,7 @@ static PySequenceMethods trienode_as_sequence = {
 
 PyDoc_STRVAR(trienode_doc,"TrieNode() -> new empty node");
 
-PyTypeObject PyTrieNode_Type = {
+PyTypeObject PyTrieNodeObject_Type = {
     PyVarObject_HEAD_INIT(&PyType_Type, 0)
     "TrieNode",
     sizeof(PyTrieNodeObject),
