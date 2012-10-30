@@ -73,12 +73,12 @@ Further Reading
 
 Full documentation for *prefixtree* is hosted by `Read The Docs`_.
 
-.. _GitHub: https://github.com/aliles/prefixtree
+.. _GitHub: https://github.com/provoke-vagueness/prefixtree
 .. _Read The Docs: http://prefixtree.readthedocs.org/
 .. _Travis CI: http://travis-ci.org/
 .. _abstract base classes: http://docs.python.org/py3k/library/collections.html#abcs-abstract-base-classes
-.. _issues system: https://github.com/aliles/prefixtree/issues
+.. _issues system: https://github.com/provoke-vagueness/prefixtree/issues
 .. _prefix trees: http://en.wikipedia.org/wiki/Trie
 
-.. |build_status| image:: https://secure.travis-ci.org/aliles/prefixtree.png?branch=master
-   :target: http://travis-ci.org/#!/aliles/prefixtree
+.. |build_status| image:: https://secure.travis-ci.org/provoke-vagueness/prefixtree.png?branch=master
+   :target: http://travis-ci.org/#!/provoke-vagueness/prefixtree

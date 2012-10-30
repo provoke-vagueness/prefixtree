@@ -15,9 +15,9 @@ GitHub's `issues system`_.
 
 |build_status|
 
-.. _GitHub: https://github.com/aliles/prefixtree
-.. _issues system: https://github.com/aliles/prefixtree/issues
+.. _GitHub: https://github.com/provoke-vagueness/prefixtree
+.. _issues system: https://github.com/provoke-vagueness/prefixtree/issues
 .. _Travis CI: http://travis-ci.org
 
-.. |build_status| image:: https://secure.travis-ci.org/aliles/prefixtree.png?branch=master
-   :target: http://travis-ci.org/#!/aliles/prefixtree
+.. |build_status| image:: https://secure.travis-ci.org/provoke-vagueness/prefixtree.png?branch=master
+   :target: http://travis-ci.org/#!/provoke-vagueness/prefixtree
