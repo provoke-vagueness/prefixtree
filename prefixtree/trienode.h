@@ -1,7 +1,7 @@
 
 
-#ifndef Py_TRIEOBJECT_H
-#define Py_TRIEOBJECT_H
+#ifndef Py_TRIENODEOBJECT_H
+#define Py_TRIENODEOBJECT_H
 #ifdef __cplusplus
 extern "C" {
 #endif
