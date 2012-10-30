@@ -6,7 +6,10 @@ deps:
 	            -r requirements/testing.txt \
 	            -r requirements/production.txt
 
-sdist:
+build:
+	python setup.py build
+
+sdist: build
 	python setup.py sdist
 
 register:
@@ -15,10 +18,10 @@ register:
 site:
 	cd docs; make html
 
-test:
+test: build
 	coverage run setup.py test
 
-unittest:
+unittest: build
 	coverage run -m unittest discover
 
 lint:
@@ -35,3 +38,5 @@ clean:
 	cd docs; make clean
 
 docs: site
+
+.PHONY: deps build sdist register site test unittest lint coverage clean docs

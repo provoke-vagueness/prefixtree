@@ -2,7 +2,7 @@
 from distribute_setup import use_setuptools
 use_setuptools()
 
-from setuptools import setup
+from setuptools import setup, Extension
 import re
 import sys
 
@@ -28,6 +28,7 @@ setup(
     name="prefixtree",
     version=load_version(),
     packages=['prefixtree'],
+    ext_modules=[Extension('prefixtree._trie', ['prefixtree/trie.c'])],
     zip_safe=False,
     author="Aaron Iles",
     author_email="aaron.iles@gmail.com",
@@ -36,8 +37,8 @@ setup(
     long_description=open('README.rst').read(),
     # long_description=load_rst(),
     license="ASL",
-    install_requires = [],
-    classifiers = [
+    install_requires=[],
+    classifiers=[
         'Development Status :: 2 - Pre-Alpha',
         'Intended Audience :: Developers',
         'License :: OSI Approved :: Apache Software License',
@@ -52,6 +53,6 @@ setup(
         'Programming Language :: Python :: Implementation :: PyPy',
         'Topic :: Software Development :: Libraries :: Python Modules'
     ],
-    tests_require = [] if sys.version_info[0] > 2 else ['unittest2'],
-    test_suite = "tests" if sys.version_info[0] > 2 else 'unittest2.collector'
+    tests_require=[] if sys.version_info[0] > 2 else ['unittest2'],
+    test_suite="tests" if sys.version_info[0] > 2 else 'unittest2.collector'
 )
