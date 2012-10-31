@@ -82,4 +82,4 @@ The benchamrks values were
 averaged from three runs of
 each benchmark script.
 
-.. _Travis CI: http://travis-ci.org/#!/aliles/prefixtree
+.. _Travis CI: http://travis-ci.org/#!/provoke-vagueness/prefixtree
