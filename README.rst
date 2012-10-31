@@ -64,9 +64,7 @@ Issues
 ------
 
 Source code for ``prefixtree`` is hosted on `GitHub`_. Any bug reports or
-feature requests can be made using GitHub's `issues system`_.
-
-|build_status|
+feature requests can be made using GitHub's `issues system`_. |build_status|
 
 Further Reading
 ---------------

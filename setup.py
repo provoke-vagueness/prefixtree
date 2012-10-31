@@ -33,7 +33,7 @@ setup(
     author_email="aaron.iles@gmail.com",
     url="http://prefixtree.readthedocs.org",
     description="Python dictionary and set implemented using prefix trees",
-    long_description=open('README.rst').read(),
+    long_description=open('README.rst').read() + '\n' + open('CHANGELOG').read(),
     # long_description=load_rst(),
     license="ASL",
     install_requires = [],
