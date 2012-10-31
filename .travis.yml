@@ -1,7 +1,4 @@
 language: python
-branches:
-  except:
-    - cpyext
 python:
   - 2.6
   - 2.7
