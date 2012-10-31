@@ -1,4 +1,6 @@
 #include "Python.h"
+#include "bytesobject.h"
+#include "intobject.h"
 #include "structmember.h"
 
 
