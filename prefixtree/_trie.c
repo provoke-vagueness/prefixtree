@@ -1,6 +1,10 @@
 #include "Python.h"
 #include "structmember.h"
 
+#if PY_MAJOR_VERSION < 3
+#include "bytesobject.h"
+#include "intobject.h"
+#endif
 
 typedef struct {
     unsigned char id;

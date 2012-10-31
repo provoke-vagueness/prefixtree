@@ -30,6 +30,9 @@ lint:
 coverage:
 	coverage report --show-missing --include="prefixtree*"
 
+performance:
+	PYTHONPATH=. python tests/test_performance.py
+
 clean:
 	python setup.py clean --all
 	find . -type f -name "*.pyc" -exec rm '{}' +
