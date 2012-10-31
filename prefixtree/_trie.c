@@ -1,8 +1,10 @@
 #include "Python.h"
-#include "bytesobject.h"
-#include "intobject.h"
 #include "structmember.h"
 
+#if PY_MAJOR_VERSION < 3
+#include "bytesobject.h"
+#include "intobject.h"
+#endif
 
 /* Python Node object */
 typedef struct {
