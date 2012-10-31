@@ -4,6 +4,8 @@ python:
   - 2.7
   - 3.2
   - pypy
+env:
+  - PREFIXTREE_PERF=
 install:
   - pip install -r requirements/testing.txt -r requirements/production.txt --use-mirrors
   - python setup.py install
