@@ -6,16 +6,17 @@ import sys
 try:
     # python 2.x
     import unittest2 as unittest
-    PENALTY_MEM = 5
+    PENALTY_MEM = 10
     PENALTY_CPU = 100
 except ImportError:
     # python 3.x
     import unittest
-    PENALTY_MEM = 5
+    PENALTY_MEM = 10
     PENALTY_CPU = 150
 
 
-enableIf = unittest.skipIf(os.getenv('PREFIXTREE_PERF') is None,
+enableIf = unittest.skipIf(
+        os.getenv('PREFIXTREE_PERF') is None and sys.version_info[:2] > (2, 6),
         'Set PREFIXTREE_PERF environment variable to run performance tests')
 
 
@@ -62,11 +63,11 @@ class TestPerformance(unittest.TestCase):
 
     @enableIf
     def test_cpu_performance(self):
-        self.assertLess(self.mem_trie, PENALTY_MEM * self.mem_dict)
+        self.assertLess(self.cpu_trie, PENALTY_CPU * self.cpu_dict)
 
     @enableIf
     def test_mem_performance(self):
-        self.assertLess(self.cpu_trie, PENALTY_CPU * self.cpu_dict)
+        self.assertLess(self.mem_trie, PENALTY_MEM * self.mem_dict)
 
 
 if __name__ == '__main__':
