@@ -7,6 +7,8 @@ typedef struct {
     PyObject_HEAD
 } NodeObject;
 
+PyDoc_STRVAR(Node_doc,"Node() -> new empty node");
+
 
 static PyObject *
 Node_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
@@ -54,8 +56,6 @@ static PyMethodDef Node_methods[] = {
 };
 
 
-PyDoc_STRVAR(Node_doc,"Node() -> new empty node");
-
 static PyTypeObject NodeType = {
     PyVarObject_HEAD_INIT(NULL, 0)
     "prefixtree._trie.Node",
@@ -97,25 +97,38 @@ static PyTypeObject NodeType = {
     Node_new,                                   /* tp_new */
 };
 
-
-static PyModuleDef _triemodule = {
-    PyModuleDef_HEAD_INIT,
-    "_trie",
-    "C extensions speedups for prefixtree",
-    -1,
-    NULL, NULL, NULL, NULL, NULL
-};
+PyDoc_STRVAR(Module_doc, "C speedups extension for prefixtree");
 
 
-PyMODINIT_FUNC
-PyInit__trie(void) 
+#if PY_MAJOR_VERSION >= 3
+    static PyModuleDef _triemodule = {
+        PyModuleDef_HEAD_INIT,
+        "_trie",                                    /* m_name */
+        Module_doc,                                 /* m_doc */
+        -1,                                         /* m_size */
+        NULL,                                       /* m_methods */
+        NULL,                                       /* m_relaod */
+        NULL,                                       /* m_traverse */
+        NULL,                                       /* m_clear */
+        NULL                                        /* m_free */
+    };
+#endif 
+
+
+static PyObject*
+moduleinit(void)
 {
     PyObject* module;
 
     if (PyType_Ready(&NodeType) < 0)
         return NULL;
 
+#if PY_MAJOR_VERSION >= 3
     module = PyModule_Create(&_triemodule);
+#else
+    module = Py_InitModule3("_trie", NULL, Module_doc);
+#endif
+
     if (module == NULL)
         return NULL;
 
@@ -124,3 +137,18 @@ PyInit__trie(void)
 
     return module;
 }
+
+
+#if PY_MAJOR_VERSION >= 3
+    PyMODINIT_FUNC
+    PyInit__trie(void)
+    {
+        return moduleinit();
+    }
+#else
+    PyMODINIT_FUNC
+    init_trie(void)
+    {
+        moduleinit();
+    }
+#endif
