@@ -28,7 +28,7 @@ setup(
     name="prefixtree",
     version=load_version(),
     packages=['prefixtree'],
-    ext_modules=[Extension('prefixtree._trie', ['prefixtree/trie.c'])],
+    ext_modules=[Extension('prefixtree._trie', ['prefixtree/_trie.c'])],
     zip_safe=False,
     author="Aaron Iles",
     author_email="aaron.iles@gmail.com",

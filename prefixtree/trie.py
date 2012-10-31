@@ -1,5 +1,6 @@
 "Trie implementation in pure Python"
 import array
+from . import _trie
 
 try:
     # python 2.x
@@ -21,7 +22,7 @@ STRING_TYPE = bytes
 UNICODE_TYPE = str if str is not bytes else unicode
 
 
-class Node(abc.MutableMapping):
+class Node(abc.MutableMapping, _trie.Node):
     "Node object for Trie"
 
     __slots__ = ('value', 'meta', '_branches', '_children', '_nodes', '_path')
