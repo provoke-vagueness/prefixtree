@@ -16,7 +16,7 @@ except ImportError:
 
 
 enableIf = unittest.skipIf(
-        os.getenv('PREFIXTREE_PERF') is None and sys.version_info[:2] > (2, 6),
+        os.getenv('PREFIXTREE_PERF') is None or sys.version_info[:2] < (2, 7),
         'Set PREFIXTREE_PERF environment variable to run performance tests')
 
 
