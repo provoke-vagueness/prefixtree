@@ -2,9 +2,16 @@
 #include "structmember.h"
 
 
+typedef struct {
+    unsigned char id;
+    PyObject * object;
+} ChildObject;
+
 /* Python Node object */
 typedef struct {
     PyObject_HEAD
+    unsigned char CONTROL_FLAGS;
+    ChildObject ** objects;
 } NodeObject;
 
 
