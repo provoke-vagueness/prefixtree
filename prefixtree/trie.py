@@ -21,37 +21,17 @@ except ImportError:
 STRING_TYPE = bytes
 UNICODE_TYPE = str if str is not bytes else unicode
 
-
 class Node(abc.MutableMapping, _trie.Node):
     "Node object for Trie"
 
     __slots__ = ('value', 'meta', '_branches', '_children', '_nodes', '_path')
 
     def __init__(self, path=b''):
-        self._branches = array.array('B', repeat(0xFF, 256))
-        self._children = 0
-        self._nodes = []
         self._path = path
 
     @property
     def path(self):
         return self._path
-
-    def __contains__(self, key):
-        offset = self._branches[key]
-        if offset >= len(self._nodes):
-            return False
-        return self._branches[key] is not None
-
-    def __delitem__(self, key):
-        offset = self._branches[key]
-        if offset < len(self._nodes):
-            self._nodes[offset] = None
-            self._children -= 1
-
-    def __getitem__(self, key):
-        offset = self._branches[key]
-        return self._nodes[offset] if offset < len(self._nodes) else None
 
     def __iter__(self):
         for key, offset in enumerate(self._branches):
@@ -61,8 +41,6 @@ class Node(abc.MutableMapping, _trie.Node):
             if node is not None:
                 yield (key, node)
 
-    def __len__(self):
-        return self._children
 
     def __reversed__(self):
         for key, offset in enumerate(reversed(self._branches)):
@@ -72,15 +50,6 @@ class Node(abc.MutableMapping, _trie.Node):
             if node is not None:
                 yield (255 - key, node)
 
-    def __setitem__(self, key, node):
-        current = self._branches[key]
-        if current < len(self._nodes):
-            self._nodes[current] = node
-        else:
-            leaf = len(self._nodes)
-            self._nodes.append(node)
-            self._branches[key] = leaf
-            self._children += 1
 
 
 class TrieBase(object):
