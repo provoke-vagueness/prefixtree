@@ -56,11 +56,7 @@ Node_ass_subscript(PyNodeObject *self, PyObject *py_key, PyObject *child)
     unsigned char key;
     ChildObject * item;
     ChildObject ** new_children;
-//    PyObject * child;
     int i;
-
-//    if (!PyArg_ParseTuple(args, "bO", &key, &child))
-//        return -1;
 
     //Validate item is correct
     if (PyBytes_Check(py_key)){
@@ -304,7 +300,7 @@ static PyMappingMethods Node_as_mapping = {
 
 static PyTypeObject PyNode_Type = {
     PyVarObject_HEAD_INIT(&PyType_Type, 0)
-    "_trie.Node",
+    "prefixtree._trie.Node",
     sizeof(PyNodeObject),
     0,
     (destructor)Node_dealloc,                   /* tp_dealloc */
@@ -314,7 +310,7 @@ static PyTypeObject PyNode_Type = {
     0,                                          /* tp_reserved */
     0,                                          /* tp_repr */
     0,                                          /* tp_as_number */
-    0,                          /* tp_as_sequence */
+    0,                                          /* tp_as_sequence */
     &Node_as_mapping,                           /* tp_as_mapping */
     0,                                          /* tp_hash */
     0,                                          /* tp_call */

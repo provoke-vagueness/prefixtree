@@ -21,10 +21,10 @@ except ImportError:
 STRING_TYPE = bytes
 UNICODE_TYPE = str if str is not bytes else unicode
 
-class Node(abc.MutableMapping, _trie.Node):
+class Node(_trie.Node):
     "Node object for Trie"
 
-    __slots__ = ('value', 'meta', '_branches', '_children', '_nodes', '_path')
+    #__slots__ = ('value', 'meta', '_branches', '_children', '_nodes', '_path')
 
     def __init__(self, path=b''):
         self._path = path
