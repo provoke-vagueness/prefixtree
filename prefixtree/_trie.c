@@ -21,37 +21,74 @@ typedef struct {
 
 PyDoc_STRVAR(Node_doc,"Node() -> new empty node");
 
-static PyObject *
-Node_subscript(PyNodeObject *self, PyObject *py_key)
+static int
+Node_delitem(PyNodeObject *self, PyObject *py_key)
 {
     unsigned char key;
     ChildObject * item;
+    ChildObject ** new_children;
     int i;
+    int new_size;
+    int rm_index;
 
+    //if (!PyArg_ParseTuple(args, "b", &key))
+    //    return NULL;
     //Validate item is correct
     if (PyBytes_Check(py_key)){
         PyErr_SetString(PyExc_TypeError, "type(key) != bytes");
-        return NULL;
+        return -1;
     }
     if (PyBytes_GET_SIZE(py_key) != 1){
         PyErr_SetString(PyExc_ValueError, "len(key) != 1");
-        return NULL;
+        return -1;
     }
     key = PyBytes_AS_STRING(py_key)[0];
 
-    //find our key and return the child object
-    for (i = 0; i < Py_SIZE(self); i++){
+    rm_index = -1;
+    for (i = 0; i < Py_SIZE(self); i++) {
         item = self->children[i];
-        if (item->key == key)
-            return item->child;
+        if (item->key == key){
+            rm_index = i;
+            break;
+        }
     }
 
-    PyErr_SetString(PyExc_KeyError, "child key not set");
-    return NULL;
+    if (rm_index == -1){
+        PyErr_SetString(PyExc_KeyError, "key not set");
+        return -1;
+    }
+
+    //we found the key, let's remove it... 
+    new_size = Py_SIZE(self) - 1;
+
+    //only one object remains - clear it out
+    if (new_size == 0){
+        Py_DECREF(self->children[0]->child);
+        PyMem_Free(self->children[0]);
+        PyMem_Free(self->children);
+        Py_SIZE(self) = 0;
+        return 0;
+    }
+
+    //shuffle our index across 
+    for (i = rm_index; i < Py_SIZE(self) - 1; i++)
+        self->children[i] = self->children[i+1];
+    
+    //resize 
+    Py_SIZE(self) = new_size;
+    new_children = (ChildObject **)PyMem_Resize(self->children,
+            ChildObject *, Py_SIZE(self));
+    if (new_children == NULL){
+        //Not much we can do here ---  we've broken the children, but 
+        //Py_SIZE is consistent still.
+        return PyErr_NoMemory();
+    }
+    self->children = new_children;
+    return 0;
 }
 
 static int 
-Node_ass_subscript(PyNodeObject *self, PyObject *py_key, PyObject *child)
+Node_setitem(PyNodeObject *self, PyObject *py_key, PyObject *child)
 {
     unsigned char key;
     ChildObject * item;
@@ -120,6 +157,45 @@ Node_ass_subscript(PyNodeObject *self, PyObject *py_key, PyObject *child)
 }
 
 static PyObject *
+Node_subscript(PyNodeObject *self, PyObject *py_key)
+{
+    unsigned char key;
+    ChildObject * item;
+    int i;
+
+    //Validate item is correct
+    if (PyBytes_Check(py_key)){
+        PyErr_SetString(PyExc_TypeError, "type(key) != bytes");
+        return NULL;
+    }
+    if (PyBytes_GET_SIZE(py_key) != 1){
+        PyErr_SetString(PyExc_ValueError, "len(key) != 1");
+        return NULL;
+    }
+    key = PyBytes_AS_STRING(py_key)[0];
+
+    //find our key and return the child object
+    for (i = 0; i < Py_SIZE(self); i++){
+        item = self->children[i];
+        if (item->key == key)
+            return item->child;
+    }
+
+    PyErr_SetString(PyExc_KeyError, "child key not set");
+    return NULL;
+}
+
+static int 
+Node_ass_subscript(PyNodeObject *self, PyObject *py_key, PyObject *child)
+{
+    if (child == NULL)
+        return Node_delitem(self, py_key);
+    else
+        return Node_setitem(self, py_key, child);
+
+}
+
+static PyObject *
 Node_contains(PyNodeObject *self, PyObject *args)
 {
     unsigned char key;
@@ -135,62 +211,6 @@ Node_contains(PyNodeObject *self, PyObject *args)
             return Py_True;
     }
     return Py_False;
-}
-
-static PyObject *
-Node_delitem(PyNodeObject *self, PyObject *args)
-{
-    unsigned char key;
-    ChildObject * item;
-    ChildObject ** new_children;
-    int i;
-    int new_size;
-    int rm_index;
-
-    if (!PyArg_ParseTuple(args, "b", &key))
-        return NULL;
-
-    rm_index = -1;
-    for (i = 0; i < Py_SIZE(self); i++) {
-        item = self->children[i];
-        if (item->key == key){
-            rm_index = i;
-            break;
-        }
-    }
-
-    if (rm_index == -1){
-        PyErr_SetString(PyExc_KeyError, "key not set");
-        return NULL;
-    }
-
-    //we found the key, let's remove it... 
-    new_size = Py_SIZE(self) -= 1;
-
-    //only one object remains - clear it out
-    if (new_size == 0){
-        Py_DECREF(self->children[0]->child);
-        PyMem_Free(self->children[0]);
-        PyMem_Free(self->children);
-        Py_SIZE(self) = 0;
-        return Py_None;
-    }
-
-    //shuffle our index across 
-    for (i = rm_index; i < Py_SIZE(self) - 1; i++)
-        self->children[i] = self->children[i+1];
-    
-    //resize 
-    Py_SIZE(self) = new_size;
-    new_children = (ChildObject **)PyMem_Resize(self->children,
-            ChildObject *, Py_SIZE(self));
-    if (new_children == NULL){
-        //Not much we can do here ---  we've broken the children, but 
-        //Py_SIZE is consistent still.
-        return PyErr_NoMemory();
-    }
-    self->children = new_children;
-    return Py_None;
 }
 
 static Py_ssize_t
@@ -221,8 +241,6 @@ Node_iter(PyDictObject *dict)
 {
     return Py_None;
 }
-
-
 
 static void
 Node_dealloc(PyNodeObject *self)
@@ -268,7 +286,7 @@ PyDoc_STRVAR(getitem__doc__, "x.__getitem__(y) <==> x[y]");
 
 PyDoc_STRVAR(setitem__doc__, "x.__setitem__(i, y) <==> x[i]=y");
 
-PyDoc_STRVAR(delitem__doc__, "x.__delitem__(y) <==> del x[y]");
+//PyDoc_STRVAR(delitem__doc__, "x.__delitem__(y) <==> del x[y]");
 
 PyDoc_STRVAR(length__doc__, "x.__len__() <==> len(x)");
 
@@ -281,8 +299,8 @@ static PyMethodDef Node_methods[] = {
         (PyCFunction)Node_subscript, METH_O | METH_COEXIST, getitem__doc__},
     {"__setitem__", 
         (PyCFunction)Node_ass_subscript, METH_VARARGS, setitem__doc__},
-    {"__delitem__", 
-        (PyCFunction)Node_delitem, METH_VARARGS, delitem__doc__},
+//    {"__delitem__", 
+//        (PyCFunction)Node_delitem, METH_VARARGS, delitem__doc__},
     {"__len__", 
         (PyCFunction)Node_length, METH_NOARGS, length__doc__},
     {"__contains__", 

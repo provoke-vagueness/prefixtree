@@ -9,6 +9,12 @@ except ImportError:
 
 from prefixtree import trie
 
+class TestCNode(unittest.TestCase):
+
+    def test_key_type(self):
+        n = trie.Node()
+        self.assertRaises(TypeError, n.__setitem__, 3)
+
 
 class TestNode(unittest.TestCase):
 
@@ -17,10 +23,9 @@ class TestNode(unittest.TestCase):
         n['0'] = Ellipsis
         self.assertIs(n['0'], Ellipsis)
 
-    def atest_set_del(self):
+    def test_set_del(self):
         n = trie.Node()
         n['0'] = Ellipsis
-        del n['0']
         self.assertIs(n['0'], None)
 
     def test_set_set(self):
@@ -44,7 +49,8 @@ class TestNode(unittest.TestCase):
         self.assertSequenceEqual(list(iter(n)), keys)
 
     def test_len(self):
-        keys = [(k, Ellipsis) for k in range(128, 256)]
+        keys = [(chr(k), Ellipsis) for k in range(128, 256)]
+        print(keys)
         n = trie.Node()
         for k, v in keys:
             n[k] = v
