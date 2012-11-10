@@ -360,7 +360,7 @@ static PyTypeObject PyNode_Type = {
     0,                                          /* tp_clear */
     0,                                          /* tp_richcompare */
     0,                                          /* tp_weaklistoffset */
-    (getiterfunc)Node_iterkeys,                 /* tp_iter */
+    (getiterfunc)Node_iteritems,                /* tp_iter */
     0,                                          /* tp_iternext */
     Node_methods,                               /* tp_methods */
     0,                                          /* tp_members */
