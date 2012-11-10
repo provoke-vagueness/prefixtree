@@ -8,38 +8,72 @@ except ImportError:
     import unittest
 
 from prefixtree import trie
+from prefixtree import _trie
 
 class TestCNode(unittest.TestCase):
 
-    def test_key_type(self):
-        n = trie.Node()
-        self.assertRaises(TypeError, n.__setitem__, 3)
+    def test_parsekey(self):
+        n = _trie.Node()
+        self.assertRaises(ValueError, n.__setitem__, b'aa', 0)
+        self.assertRaises(ValueError, n.__setitem__, 'aa', 0)
+        self.assertRaises(ValueError, n.__setitem__, dict(), 0)
+        self.assertRaises(ValueError, n.__setitem__, dict(), -1)
+        self.assertRaises(ValueError, n.__setitem__, dict(), 256)
+        n[b'a'] = 0
+        n['a'] = 0
+        n[0] = 0
+        n[255] = 0
 
+    def test_subscript(self):
+        n = _trie.Node()
+        n[0] = 0
+        self.assertEqual(n[0], 0)
+        n[1] = 10
+        self.assertEqual(n[1], 10)
+
+    def test_ass_subscript(self):
+        n = _trie.Node()
+        n[0] = 0
+        self.assertEqual(n[0], 0)
+        del n[0]
+        n[1] = 10
+        self.assertEqual(n[1], 10)
+
+    def test_itervalues(self):
+        pass
+
+    def test_iterkeys(self):
+        pass
+    
+    def test_iteritems(self):
+        pass
+    
+                        
 
 class TestNode(unittest.TestCase):
 
     def test_set_get(self):
         n = trie.Node()
-        n['0'] = Ellipsis
-        self.assertIs(n['0'], Ellipsis)
+        n[0] = Ellipsis
+        self.assertIs(n[0], Ellipsis)
 
     def test_set_del(self):
         n = trie.Node()
-        n['0'] = Ellipsis
-        self.assertIs(n['0'], None)
+        n[0] = Ellipsis
+        self.assertIs(n[0], None)
 
     def test_set_set(self):
         n = trie.Node()
-        n['0'] = False
-        self.assertIs(n['0'], False)
-        n['0'] = True
-        self.assertIs(n['0'], True)
+        n[0] = False
+        self.assertIs(n[0], False)
+        n[0] = True
+        self.assertIs(n[0], True)
 
     def test_contains(self):
         n = trie.Node()
-        self.assertFalse('0' in n)
-        n['0'] = Ellipsis
-        self.assertTrue('0' in n)
+        self.assertFalse(0 in n)
+        n[0] = Ellipsis
+        self.assertTrue(0 in n)
 
     def test_iterate(self):
         keys = [(k, Ellipsis) for k in range(128, 256)]
