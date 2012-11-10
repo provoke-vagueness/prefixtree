@@ -30,7 +30,7 @@ static PyObject *NodeIter_new(PyNodeObject *, PyTypeObject *);
 PyDoc_STRVAR(Node_doc, "Node() -> new empty node");
 
 static int
-Node_ParseKey(PyObject *py_key, unsigned char *key)
+Node_parsekey(PyObject *py_key, unsigned char *key)
 {
     //if py_key is a long, validate its range
     if (PyLong_Check(py_key)) {
@@ -70,7 +70,7 @@ Node_delitem(PyNodeObject *self, PyObject *py_key)
     int new_size;
     int rm_index;
 
-    if (Node_ParseKey(py_key, &key) != 0)
+    if (Node_parsekey(py_key, &key) != 0)
         return -1;
 
     rm_index = -1;
@@ -87,12 +87,14 @@ Node_delitem(PyNodeObject *self, PyObject *py_key)
         return -1;
     }
 
+    //remove our refcount to the deleted item
+    Py_DECREF(item);
+
     //we found the key, let's remove it... 
     new_size = Py_SIZE(self) - 1;
 
     //only one object remains - clear it out
     if (new_size == 0) {
-        Py_DECREF(self->children[0]->child);
         PyMem_Free(self->children[0]);
         PyMem_Free(self->children);
         Py_SIZE(self) = 0;
@@ -125,7 +127,7 @@ Node_setitem(PyNodeObject *self, PyObject *py_key, PyObject *child)
     ChildObject ** new_children;
     int i;
 
-    if (Node_ParseKey(py_key, &key) != 0)
+    if (Node_parsekey(py_key, &key) != 0)
         return -1;
 
     //increment the ref count on this child object
@@ -188,7 +190,7 @@ Node_subscript(PyNodeObject *self, PyObject *py_key)
     ChildObject * item;
     int i;
 
-    if (Node_ParseKey(py_key, &key) != 0)
+    if (Node_parsekey(py_key, &key) != 0)
         return NULL;
 
     //find our key and return the child object
@@ -222,7 +224,7 @@ Node_contains(PyNodeObject *self, PyObject *py_key)
     ChildObject * item;
     int i;
 
-    if (Node_ParseKey(py_key, &key) != 0)
+    if (Node_parsekey(py_key, &key) != 0)
         return NULL;
 
     for (i = 0; i < Py_SIZE(self); i++) {
