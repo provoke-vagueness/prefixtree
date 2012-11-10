@@ -67,7 +67,6 @@ Node_delitem(PyNodeObject *self, PyObject *py_key)
     ChildObject * item;
     ChildObject ** new_children;
     int i;
-    int new_size;
     int rm_index;
 
     if (Node_parsekey(py_key, &key) != 0)
@@ -87,26 +86,22 @@ Node_delitem(PyNodeObject *self, PyObject *py_key)
         return -1;
     }
 
-    //remove our refcount to the deleted item
-    Py_DECREF(item);
-
-    //we found the key, let's remove it... 
-    new_size = Py_SIZE(self) - 1;
+    //remove the item 
+    Py_DECREF(item->child);
+    PyMem_Free(item);
+    Py_SIZE(self) -= 1;
 
     //only one object remains - clear it out
-    if (new_size == 0) {
-        PyMem_Free(self->children[0]);
+    if (Py_SIZE(self) == 0) {
         PyMem_Free(self->children);
-        Py_SIZE(self) = 0;
         return 0;
     }
 
     //shuffle our index across 
-    for (i = rm_index; i < Py_SIZE(self) - 1; i++)
+    for (i = rm_index; i < Py_SIZE(self); i++)
         self->children[i] = self->children[i+1];
-    
+   
     //resize 
-    Py_SIZE(self) = new_size;
     new_children = (ChildObject **)PyMem_Resize(self->children,
             ChildObject *, Py_SIZE(self));
     if (new_children == NULL) {
@@ -250,7 +245,6 @@ Node_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
     PyNodeObject *self;
     self = (PyNodeObject*)type->tp_alloc(type, 0);
     self->flags = 0x00;
-    self->children = NULL;
     Py_SIZE(self) = 0;
     return (PyObject *)self;
 }
@@ -286,14 +280,13 @@ Node_dealloc(PyNodeObject *self)
     int i;
 
     if (self) {
-        if (self->children){
+        if (Py_SIZE(self) > 0){
             for (i = 0; i < Py_SIZE(self); i++) {
                 item = self->children[i];
                 Py_DECREF(item->child);
                 PyMem_Free(item);
             }
             PyMem_Free(self->children);
-            self->children = NULL;
             Py_SIZE(self) = 0;
         }
     }
