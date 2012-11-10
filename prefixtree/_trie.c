@@ -145,6 +145,7 @@ Node_setitem(PyNodeObject *self, PyObject *py_key, PyObject *child)
     //create the new child object
     item = (ChildObject *)PyMem_Malloc(sizeof(ChildObject));
     if (item == NULL) {
+        Py_DECREF(child);
         PyErr_NoMemory();
         return -1;
     }
@@ -193,8 +194,10 @@ Node_subscript(PyNodeObject *self, PyObject *py_key)
     //find our key and return the child object
     for (i = 0; i < Py_SIZE(self); i++) {
         item = self->children[i];
-        if (item->key == key)
+        if (item->key == key) {
+            Py_INCREF(item->child);
             return item->child;
+        }
     }
 
     PyErr_SetString(PyExc_KeyError, "child key not set");
@@ -224,9 +227,12 @@ Node_contains(PyNodeObject *self, PyObject *py_key)
 
     for (i = 0; i < Py_SIZE(self); i++) {
         item = self->children[i];
-        if (item->key == key)
+        if (item->key == key) {
+            Py_INCREF(Py_True);
             return Py_True;
+        }
     }
+    Py_INCREF(Py_False);
     return Py_False;
 }
 
@@ -243,6 +249,7 @@ Node_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
     self = (PyNodeObject*)type->tp_alloc(type, 0);
     self->flags = 0x00;
     self->children = NULL;
+    Py_SIZE(self) = 0;
     return (PyObject *)self;
 }
 

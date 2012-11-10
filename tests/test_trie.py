@@ -13,31 +13,58 @@ from prefixtree import _trie
 class TestCNode(unittest.TestCase):
 
     def test_parsekey(self):
+        """assert correct key type behaviour"""
         n = _trie.Node()
+        #invalid assignments
         self.assertRaises(ValueError, n.__setitem__, b'aa', 0)
         self.assertRaises(ValueError, n.__setitem__, 'aa', 0)
         self.assertRaises(ValueError, n.__setitem__, dict(), 0)
         self.assertRaises(ValueError, n.__setitem__, dict(), -1)
         self.assertRaises(ValueError, n.__setitem__, dict(), 256)
+        self.assertRaises(ValueError, n.__contains__, 256)
+        self.assertRaises(ValueError, n.__delitem__, 256)
+        #valid assignments 
         n[b'a'] = 0
         n['a'] = 0
         n[0] = 0
         n[255] = 0
 
     def test_subscript(self):
+        """validate subscript implementation"""
+        # __getitem__ 
         n = _trie.Node()
         n[0] = 0
         self.assertEqual(n[0], 0)
         n[1] = 10
+        self.assertEqual(n[0], 0)
         self.assertEqual(n[1], 10)
+        self.assertTrue(len(n) == 2)
 
     def test_ass_subscript(self):
+        """validate assignment subscript implementation"""
+        # __delitem__ and __setitem__ 
         n = _trie.Node()
-        n[0] = 0
-        self.assertEqual(n[0], 0)
+        self.assertRaises(KeyError, n.__delitem__, 3)
+        n[0] = 2
+        self.assertEqual(n[0], 2)
+        self.assertTrue(len(n) == 1)
         del n[0]
-        n[1] = 10
-        self.assertEqual(n[1], 10)
+        n[10] = 3
+        self.assertTrue(len(n) == 1)
+        n[1] = 4
+        n[2] = 5 
+        self.assertEqual(n[1], 4)
+        self.assertTrue(len(n) == 3)
+        for i in range(256):
+            n[i] = i
+        self.assertTrue(len(n) == 256)
+        for i in range(256): # TODO <- causing corruption somewhere... 
+            self.assertEqual(n[i], i)
+        del n[3]
+        self.assertTrue(len(n) == 255)
+        n[3] = 53
+        self.assertTrue(len(n) == 256)
+        del n
 
     def test_itervalues(self):
         pass
