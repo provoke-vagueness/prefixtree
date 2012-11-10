@@ -58,13 +58,63 @@ class TestCNode(unittest.TestCase):
         for i in range(256):
             n[i] = i
         self.assertTrue(len(n) == 256)
-        for i in range(256): # TODO <- causing corruption somewhere... 
+        for i in range(256):  
             self.assertEqual(n[i], i)
         del n[3]
         self.assertTrue(len(n) == 255)
         n[3] = 53
         self.assertTrue(len(n) == 256)
         del n
+
+    def test_set_get(self):
+        n = trie.Node()
+        n[0] = Ellipsis
+        self.assertIs(n[0], Ellipsis)
+
+    def test_set_del_single(self):
+        n = trie.Node()
+        n[0] = Ellipsis
+        del n[0]
+        self.assertRaises(KeyError,
+                n.__getitem__,0)
+
+    def test_set_del_first(self):
+        n = trie.Node()
+        n[0] = Ellipsis
+        n[1] = Ellipsis
+        del n[0]
+        self.assertRaises(KeyError,
+                n.__getitem__,0)
+
+    def test_set_del_last(self):
+        n = trie.Node()
+        n[0] = Ellipsis
+        n[1] = Ellipsis
+        del n[1]
+        self.assertRaises(KeyError,
+                n.__getitem__,1)
+
+    def test_set_del_mid(self):
+        n = trie.Node()
+        n[0] = Ellipsis
+        n[1] = Ellipsis
+        n[2] = Ellipsis
+        del n[1]
+        self.assertRaises(KeyError,
+                n.__getitem__,1)
+
+    def test_set_set(self):
+        n = trie.Node()
+        n[0] = False
+        self.assertIs(n[0], False)
+        n[0] = True
+        self.assertIs(n[0], True)
+
+    def test_contains(self):
+        n = trie.Node()
+        self.assertFalse(0 in n)
+        n[0] = Ellipsis
+        self.assertTrue(0 in n)
 
     def test_itervalues(self):
         pass
