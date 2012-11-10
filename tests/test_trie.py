@@ -137,7 +137,7 @@ class TestNode(unittest.TestCase):
     def test_set_del(self):
         n = trie.Node()
         n[0] = Ellipsis
-        self.assertIs(n[0], None)
+        self.assertIs(n[0], Ellipsis)
 
     def test_set_set(self):
         n = trie.Node()
@@ -160,8 +160,7 @@ class TestNode(unittest.TestCase):
         self.assertSequenceEqual(list(iter(n)), keys)
 
     def test_len(self):
-        keys = [(chr(k), Ellipsis) for k in range(128, 256)]
-        print(keys)
+        keys = [(k, Ellipsis) for k in range(128, 256)]
         n = trie.Node()
         for k, v in keys:
             n[k] = v

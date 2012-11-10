@@ -33,16 +33,8 @@ class Node(_trie.Node):
     def path(self):
         return self._path
 
-    def __iter__(self):
-        for key, offset in enumerate(self._branches):
-            if offset >= len(self._nodes):
-                continue
-            node = self._nodes[offset]
-            if node is not None:
-                yield (key, node)
-
-
     def __reversed__(self):
+        raise NotImplementedError()
         for key, offset in enumerate(reversed(self._branches)):
             if offset >= len(self._nodes):
                 continue
