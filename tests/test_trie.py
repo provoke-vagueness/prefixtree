@@ -116,6 +116,19 @@ class TestCNode(unittest.TestCase):
         n[0] = Ellipsis
         self.assertTrue(0 in n)
 
+    def test_set_get_end_of_string(self):
+        n = trie.Node()
+        self.assertFalse(n.end_of_string)
+        n.end_of_string = True 
+        self.assertTrue(n.end_of_string)
+        n.end_of_string = False
+        self.assertFalse(n.end_of_string)
+
+    def test_del_end_of_string(self):
+        n = trie.Node()
+        self.assertRaises(TypeError, 
+                    delattr, n, 'end_of_string')
+
     def test_itervalues(self):
         pass
 

@@ -20,7 +20,9 @@ typedef struct {
     unsigned char flags;
     ChildObject ** children;
 } PyNodeObject;
- 
+
+#define FLAG_END_OF_STRING 0
+
 /* prototypes */
 PyTypeObject PyNodeIterKeys_Type;
 PyTypeObject PyNodeIterValues_Type;
@@ -58,6 +60,46 @@ Node_parsekey(PyObject *py_key, unsigned char *key)
     Py_DECREF(py_key);
     *key = PyBytes_AS_STRING(py_key)[0];
     return 0;
+}
+
+void 
+Node_set_flag(PyNodeObject *self, PyObject *value, unsigned char flag)
+{
+    if (PyObject_IsTrue(value)) 
+        self->flags |= (1 << flag);
+    else
+        self->flags &= ~(1 << flag);
+}
+
+static int 
+Node_get_flag(PyNodeObject *self, unsigned char flag)
+{
+    return self->flags & (1 << flag);
+}
+
+static int
+Node_set_end_of_string(PyNodeObject *self, PyObject *value, void *closure)
+{
+    if (value == NULL) {
+        PyErr_SetString(PyExc_TypeError, 
+            "Cannot delete the end_of_string attribute");
+        return -1;
+    }
+    Node_set_flag(self, value, FLAG_END_OF_STRING);
+    return 0;
+}
+
+static PyObject *
+Node_get_end_of_string(PyNodeObject *self, PyObject *value, void *closure)
+{
+    if (Node_get_flag(self, FLAG_END_OF_STRING)) {
+        Py_INCREF(Py_True);
+        return Py_True;
+    }
+    else {
+        Py_INCREF(Py_False);
+        return Py_False;
+    }
 }
 
 static int
@@ -309,6 +351,7 @@ PyDoc_STRVAR(contains__doc__, "N.__contains__(y) <==> N[y]");
 PyDoc_STRVAR(keys__doc__, "N.keys() -> iter keys");
 PyDoc_STRVAR(items__doc__, "N.items() -> iter items");
 PyDoc_STRVAR(values__doc__, "N.values() -> iter values");
+PyDoc_STRVAR(end_of_string__doc__, "Flag to indicate the end of a string");
 
 static PyMethodDef Node_methods[] = {
     {"__contains__",   (PyCFunction)Node_contains,      METH_O | METH_COEXIST,
@@ -332,6 +375,12 @@ static PyMappingMethods Node_as_mapping = {
     (objobjargproc)Node_ass_subscript,       /*mp_ass_subscript*/ 
 };
 
+static PyGetSetDef Node_getseters[] = {
+    {"end_of_string", 
+     (getter)Node_get_end_of_string, (setter)Node_set_end_of_string,
+     end_of_string__doc__, NULL},
+    {NULL}  /* Sentinel */
+};
 
 static PyTypeObject PyNode_Type = {
     PyVarObject_HEAD_INIT(&PyType_Type, 0)
@@ -364,7 +413,7 @@ static PyTypeObject PyNode_Type = {
     0,                                          /* tp_iternext */
     Node_methods,                               /* tp_methods */
     0,                                          /* tp_members */
-    0,                                          /* tp_getset */
+    Node_getseters,                             /* tp_getset */
     0,                                          /* tp_base */
     0,                                          /* tp_dict */
     0,                                          /* tp_descr_get */
