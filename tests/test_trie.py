@@ -130,15 +130,50 @@ class TestCNode(unittest.TestCase):
                     delattr, n, 'end_of_string')
 
     def test_itervalues(self):
-        pass
+        n = _trie.Node()
+        for i in range(256):
+            n[i] = 256 - i
+        for key, value in n:
+            self.assertTrue(256 - key, value)
+
+    def test_itervalues_change_size(self):
+        def _iter_change_size():
+            n = _trie.Node()
+            for i in range(1, 256):
+                n[i] = None 
+            for key, value in n:
+                n[0] = None
+        self.assertRaises(RuntimeError, _iter_change_size)
 
     def test_iterkeys(self):
-        pass
-    
+        n = _trie.Node()
+        for i in range(256):
+            n[i] = None 
+        self.assertSequenceEqual(list(n.keys()), list(range(256)))
+
+    def test_iterkeys_change_size(self):
+        def _iter_change_size():
+            n = _trie.Node()
+            for i in range(1, 256):
+                n[i] = None 
+            for key in n.keys():
+                n[0] = None
+        self.assertRaises(RuntimeError, _iter_change_size)
+
     def test_iteritems(self):
-        pass
-    
+        n = _trie.Node()
+        for i in range(256):
+            n[i] = 256 - i
+        self.assertSequenceEqual(list(n.values()), list(range(256, 0, -1)))
                         
+    def test_itervalues_change_size(self):
+        def _iter_change_size():
+            n = _trie.Node()
+            for i in range(1, 256):
+                n[i] = None 
+            for key in n.values():
+                n[0] = None
+        self.assertRaises(RuntimeError, _iter_change_size)
 
 class TestNode(unittest.TestCase):
 

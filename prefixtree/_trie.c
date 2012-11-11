@@ -10,6 +10,8 @@
 
 /* Node object */
 
+PyDoc_STRVAR(Node_doc, "Node() -> new empty node");
+
 typedef struct {
     unsigned char key;
     PyObject * child;
@@ -21,46 +23,16 @@ typedef struct {
     ChildObject ** children;
 } PyNodeObject;
 
-#define FLAG_END_OF_STRING 0
 
-/* prototypes */
+#define PyNode_CheckExact(op) (Py_TYPE(op) == &PyNode_Type)
+
 PyTypeObject PyNodeIterKeys_Type;
 PyTypeObject PyNodeIterValues_Type;
 PyTypeObject PyNodeIterItems_Type;
 static PyObject *NodeIter_new(PyNodeObject *, PyTypeObject *);
 
-PyDoc_STRVAR(Node_doc, "Node() -> new empty node");
-
-static int
-Node_parsekey(PyObject *py_key, unsigned char *key)
-{
-    //if py_key is a long, validate its range
-    if (PyLong_Check(py_key)) {
-        long value = PyLong_AS_LONG(py_key);
-        if (value < 0 || value > 255) {
-            PyErr_SetString(PyExc_ValueError, "key <0 || >255");
-            return -1;
-        }
-        *key = (unsigned char)value;
-        return 0;
-    }
-
-    //try convert py_key to bytes
-    if (PyUnicode_Check(py_key)) {
-        py_key = PyUnicode_AsUTF8String(py_key);
-    }
-    else
-        py_key = PyBytes_FromObject(py_key);
-    if (!py_key)
-        return -1;
-    if (PyBytes_GET_SIZE(py_key) != 1) {
-        PyErr_SetString(PyExc_ValueError, "len(key) != 1");
-        return -1;
-    }
-    Py_DECREF(py_key);
-    *key = PyBytes_AS_STRING(py_key)[0];
-    return 0;
-}
+#define FLAG_END_OF_STRING 0
+PyDoc_STRVAR(end_of_string__doc__, "Flag to indicate the end of a string");
 
 void 
 Node_set_flag(PyNodeObject *self, PyObject *value, unsigned char flag)
@@ -100,6 +72,37 @@ Node_get_end_of_string(PyNodeObject *self, PyObject *value, void *closure)
         Py_INCREF(Py_False);
         return Py_False;
     }
+}
+
+static int
+Node_parsekey(PyObject *py_key, unsigned char *key)
+{
+    //if py_key is a long, validate its range
+    if (PyLong_Check(py_key)) {
+        long value = PyLong_AS_LONG(py_key);
+        if (value < 0 || value > 255) {
+            PyErr_SetString(PyExc_ValueError, "key <0 || >255");
+            return -1;
+        }
+        *key = (unsigned char)value;
+        return 0;
+    }
+
+    //try convert py_key to bytes
+    if (PyUnicode_Check(py_key)) {
+        py_key = PyUnicode_AsUTF8String(py_key);
+    }
+    else
+        py_key = PyBytes_FromObject(py_key);
+    if (!py_key)
+        return -1;
+    if (PyBytes_GET_SIZE(py_key) != 1) {
+        PyErr_SetString(PyExc_ValueError, "len(key) != 1");
+        return -1;
+    }
+    Py_DECREF(py_key);
+    *key = PyBytes_AS_STRING(py_key)[0];
+    return 0;
 }
 
 static int
@@ -351,7 +354,6 @@ PyDoc_STRVAR(contains__doc__, "N.__contains__(y) <==> N[y]");
 PyDoc_STRVAR(keys__doc__, "N.keys() -> iter keys");
 PyDoc_STRVAR(items__doc__, "N.items() -> iter items");
 PyDoc_STRVAR(values__doc__, "N.values() -> iter values");
-PyDoc_STRVAR(end_of_string__doc__, "Flag to indicate the end of a string");
 
 static PyMethodDef Node_methods[] = {
     {"__contains__",   (PyCFunction)Node_contains,      METH_O | METH_COEXIST,
@@ -402,8 +404,7 @@ static PyTypeObject PyNode_Type = {
     0,                                          /* tp_getattro */
     0,                                          /* tp_setattro */
     0,                                          /* tp_as_buffer */
-    Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE |
-        Py_TPFLAGS_DICT_SUBCLASS,               /* tp_flags */
+    Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,   /* tp_flags */
     Node_doc,                                   /* tp_doc */
     0,                                          /* tp_traverse */
     0,                                          /* tp_clear */
@@ -431,7 +432,7 @@ typedef struct {
         PyNodeObject *ni_node;
         Py_ssize_t ni_pos;
         PyObject  *ni_iteritems_result;
-        Py_ssize_t len;
+        Py_ssize_t ni_size;
 } NodeIterObject;
 
 static PyObject *
@@ -444,7 +445,7 @@ NodeIter_new(PyNodeObject *node, PyTypeObject *itertype)
     Py_INCREF(node);
     ni->ni_node = node;
     ni->ni_pos = 0;
-    ni->len = Py_SIZE(node);
+    ni->ni_size = Py_SIZE(node);
     if (itertype == &PyNodeIterItems_Type) {
         ni->ni_iteritems_result = PyTuple_Pack(2, Py_None, Py_None);
         if (ni->ni_iteritems_result == NULL) {
@@ -473,19 +474,45 @@ NodeIter_traverse(NodeIterObject *ni, visitproc visit, void *arg)
     return 0;
 }
 
-/*static PyObject *
-NodeIter_len(NodeIterObject *ni)
-{
-    Py_ssize_t len = 0;
-    if (ni->ni_node != NULL && ni->len == Py_SIZE(ni->ni_node))
-        len = ni->len;
-    return PyLong_FromSize_t(len);
-}*/
-
 static PyObject *
 NodeIter_iternextkey(NodeIterObject *ni)
 {
+    PyNodeObject *node;
+    ChildObject *child;
 
+    int pos;
+    PyObject *key;
+
+    node = ni->ni_node;
+    pos = ni->ni_pos;
+    ni->ni_pos++;
+
+    if (node == NULL)
+        return NULL;
+    assert(PyNode_CheckExact(node));
+
+    if (ni->ni_size != Py_SIZE(node)) {
+        PyErr_SetString(PyExc_RuntimeError,
+                "Node changed size during iteration");
+        ni->ni_size = -1;
+        return NULL;
+    }
+
+    if (pos < 0)
+        goto fail;
+
+    if (pos >= Py_SIZE(node))
+        return NULL;
+
+    child = node->children[pos];
+    key = PyLong_FromLong((long)child->key);
+    if (!key)
+        goto fail;
+    return key;
+
+fail:
+    Py_DECREF(ni->ni_node);
+    ni->ni_node = NULL;
     return NULL;
 }
 
@@ -525,8 +552,41 @@ PyTypeObject PyNodeIterKeys_Type = {
 static PyObject *
 NodeIter_iternextvalue(NodeIterObject *ni)
 {
+    PyNodeObject *node;
+    ChildObject *child;
 
+    int pos;
+    PyObject *value;
 
+    node = ni->ni_node;
+    pos = ni->ni_pos;
+    ni->ni_pos++;
+
+    if (node == NULL)
+        return NULL;
+    assert(PyNode_CheckExact(node));
+
+    if (ni->ni_size != Py_SIZE(node)) {
+        PyErr_SetString(PyExc_RuntimeError,
+                "Node changed size during iteration");
+        ni->ni_size = -1;
+        return NULL;
+    }
+
+    if (pos < 0)
+        goto fail;
+
+    if (pos >= Py_SIZE(node))
+        return NULL;
+
+    child = node->children[pos];
+    value = child->child;
+    Py_INCREF(value);
+    return value;
+
+fail:
+    Py_DECREF(ni->ni_node);
+    ni->ni_node = NULL;
     return NULL;
 }
 
@@ -566,8 +626,58 @@ PyTypeObject PyNodeIterValues_Type = {
 static PyObject *
 NodeIter_iternextitem(NodeIterObject *ni)
 {
+    PyNodeObject *node;
+    ChildObject *child;
 
+    int pos;
+    PyObject *result, *key, *value;
 
+    result = ni->ni_iteritems_result;
+    node = ni->ni_node;
+    pos = ni->ni_pos;
+    ni->ni_pos++;
+
+    if (node == NULL)
+        return NULL;
+    assert(PyNode_CheckExact(node));
+
+    if (ni->ni_size != Py_SIZE(node)) {
+        PyErr_SetString(PyExc_RuntimeError,
+                "Node changed size during iteration");
+        ni->ni_size = -1;
+        return NULL;
+    }
+
+    if (pos < 0)
+        goto fail;
+
+    if (pos >= Py_SIZE(node))
+        return NULL;
+
+    //if someone still has our result tuple, lets build a new one...
+    if (result->ob_refcnt == 1) {
+        Py_INCREF(result);
+        Py_DECREF(PyTuple_GET_ITEM(result, 0));
+        Py_DECREF(PyTuple_GET_ITEM(result, 1));
+    } else {
+        result = PyTuple_New(2);
+        if (result == NULL)
+            return NULL;
+    }
+
+    child = node->children[pos];
+    key = PyLong_FromLong((long)child->key);
+    if (!key)
+        goto fail;
+    value = child->child;
+    Py_INCREF(value);
+    PyTuple_SET_ITEM(result, 0, key);
+    PyTuple_SET_ITEM(result, 1, value);
+    return result;
+
+fail:
+    Py_DECREF(ni->ni_node);
+    ni->ni_node = NULL;
     return NULL;
 }
 
