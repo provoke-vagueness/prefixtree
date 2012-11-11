@@ -20,6 +20,7 @@ typedef struct {
 typedef struct {
     PyObject_HEAD
     unsigned char flags;
+    PyObject *value;
     ChildObject ** children;
 } PyNodeObject;
 
@@ -32,7 +33,6 @@ PyTypeObject PyNodeIterItems_Type;
 static PyObject *NodeIter_new(PyNodeObject *, PyTypeObject *);
 
 #define FLAG_END_OF_STRING 0
-PyDoc_STRVAR(end_of_string__doc__, "Flag to indicate the end of a string");
 
 void 
 Node_set_flag(PyNodeObject *self, PyObject *value, unsigned char flag)
@@ -62,7 +62,7 @@ Node_set_end_of_string(PyNodeObject *self, PyObject *value, void *closure)
 }
 
 static PyObject *
-Node_get_end_of_string(PyNodeObject *self, PyObject *value, void *closure)
+Node_get_end_of_string(PyNodeObject *self, void *closure)
 {
     if (Node_get_flag(self, FLAG_END_OF_STRING)) {
         Py_INCREF(Py_True);
@@ -72,6 +72,26 @@ Node_get_end_of_string(PyNodeObject *self, PyObject *value, void *closure)
         Py_INCREF(Py_False);
         return Py_False;
     }
+}
+
+static int 
+Node_set_value(PyNodeObject *self, PyObject *value, void *closure)
+{
+    Py_XDECREF(self->value);
+    self->value = value;
+    Py_XINCREF(self->value);
+    return 0;
+}
+
+static PyObject *
+Node_get_value(PyNodeObject *self, void *closure)
+{
+    if (self->value == NULL) {
+        PyErr_SetString(PyExc_AttributeError, "Value not set");
+        return NULL;
+    }
+    Py_INCREF(self->value);
+    return self->value;
 }
 
 static int
@@ -106,6 +126,25 @@ Node_parsekey(PyObject *py_key, unsigned char *key)
 }
 
 static int
+lookup(PyNodeObject *node, unsigned char key, ChildObject **child) 
+{
+    ChildObject *item;
+    int i;
+    //find our key and return the child object
+    for (i = 0; i < Py_SIZE(node); i++) {
+        item = node->children[i];
+        if (item->key == key) {
+            if (child)
+                *child = item;
+            return i;
+        }
+    }
+    return -1;
+}
+
+
+
+static int
 Node_delitem(PyNodeObject *self, PyObject *py_key)
 {
     unsigned char key;
@@ -117,14 +156,7 @@ Node_delitem(PyNodeObject *self, PyObject *py_key)
     if (Node_parsekey(py_key, &key) != 0)
         return -1;
 
-    rm_index = -1;
-    for (i = 0; i < Py_SIZE(self); i++) {
-        item = self->children[i];
-        if (item->key == key) {
-            rm_index = i;
-            break;
-        }
-    }
+    rm_index = lookup(self, key, &item);
 
     if (rm_index == -1) {
         PyErr_SetString(PyExc_KeyError, "key not set");
@@ -165,7 +197,6 @@ Node_setitem(PyNodeObject *self, PyObject *py_key, PyObject *child)
     unsigned char key;
     ChildObject * item;
     ChildObject ** new_children;
-    int i;
 
     if (Node_parsekey(py_key, &key) != 0)
         return -1;
@@ -173,15 +204,10 @@ Node_setitem(PyNodeObject *self, PyObject *py_key, PyObject *child)
     //increment the ref count on this child object
     Py_INCREF(child);
 
-    //see if the key is already defined...  
-    //if yes, swap out the old for the new
-    for (i = 0; i < Py_SIZE(self); i++) {
-        item = self->children[i];
-        if (item->key == key) {
-            Py_DECREF(item->child);
-            item->child = child;
-            return 0;
-        }
+    if (lookup(self, key, &item) != -1) {
+        Py_DECREF(item->child);
+        item->child = child;
+        return 0;
     }
 
     //create the new child object
@@ -228,18 +254,13 @@ Node_subscript(PyNodeObject *self, PyObject *py_key)
 {
     unsigned char key;
     ChildObject * item;
-    int i;
 
     if (Node_parsekey(py_key, &key) != 0)
         return NULL;
 
-    //find our key and return the child object
-    for (i = 0; i < Py_SIZE(self); i++) {
-        item = self->children[i];
-        if (item->key == key) {
-            Py_INCREF(item->child);
-            return item->child;
-        }
+    if (lookup(self, key, &item) != -1) {
+        Py_INCREF(item->child);
+        return item->child;
     }
 
     PyErr_SetString(PyExc_KeyError, "child key not set");
@@ -261,21 +282,60 @@ static PyObject *
 Node_contains(PyNodeObject *self, PyObject *py_key)
 {
     unsigned char key;
-    ChildObject * item;
-    int i;
 
     if (Node_parsekey(py_key, &key) != 0)
         return NULL;
 
-    for (i = 0; i < Py_SIZE(self); i++) {
-        item = self->children[i];
-        if (item->key == key) {
-            Py_INCREF(Py_True);
-            return Py_True;
-        }
+    if (lookup(self, key, NULL) != -1) {
+        Py_INCREF(Py_True);
+        return Py_True;
     }
+
     Py_INCREF(Py_False);
     return Py_False;
+}
+
+/* Return 1 if `key` is in node `self`, 0 if not, and -1 on error. */
+int
+PyNode_Contains(PyObject *ob, PyObject *py_key)
+{
+    unsigned char key;
+    PyNodeObject *self;
+
+    assert(PyNode_CheckExact(ob));
+    self = (PyNodeObject *)ob;
+
+    if (Node_parsekey(py_key, &key) != 0)
+        return -1;
+
+    if (lookup(self, key, NULL) != -1) {
+        return 1;
+    }
+
+    return 0;
+}
+
+static PyObject *
+Node_get(register PyNodeObject *self, PyObject *args)
+{
+    PyObject *py_key;
+    ChildObject *item;
+    unsigned char key;
+    PyObject *failobj = Py_None;
+
+    if (!PyArg_UnpackTuple(args, "get", 1, 2, &py_key, &failobj))
+        return NULL;
+
+    if (Node_parsekey(py_key, &key) != 0)
+        return NULL;
+
+    if (lookup(self, key, &item) != -1) {
+        Py_INCREF(item->child);
+        return item->child;
+    }
+
+    Py_INCREF(failobj);
+    return failobj;
 }
 
 static Py_ssize_t
@@ -335,7 +395,6 @@ Node_dealloc(PyNodeObject *self)
             Py_SIZE(self) = 0;
         }
     }
-
     Py_TYPE(self)->tp_free((PyObject*)self);
 }
 
@@ -354,6 +413,8 @@ PyDoc_STRVAR(contains__doc__, "N.__contains__(y) <==> N[y]");
 PyDoc_STRVAR(keys__doc__, "N.keys() -> iter keys");
 PyDoc_STRVAR(items__doc__, "N.items() -> iter items");
 PyDoc_STRVAR(values__doc__, "N.values() -> iter values");
+PyDoc_STRVAR(get__doc__,
+"N.get(k[,d]) -> N[k] if k in N, else d.  d defaults to None.");
 
 static PyMethodDef Node_methods[] = {
     {"__contains__",   (PyCFunction)Node_contains,      METH_O | METH_COEXIST,
@@ -362,6 +423,8 @@ static PyMethodDef Node_methods[] = {
     getitem__doc__},
     {"__sizeof__",     (PyCFunction)Node_sizeof,        METH_NOARGS, 
     sizeof__doc__},
+    {"get",         (PyCFunction)Node_get,              METH_VARARGS,
+     get__doc__},
     {"keys",           (PyCFunction)Node_iterkeys,      METH_NOARGS,
     keys__doc__},
     {"items",          (PyCFunction)Node_iteritems,     METH_NOARGS,
@@ -377,11 +440,31 @@ static PyMappingMethods Node_as_mapping = {
     (objobjargproc)Node_ass_subscript,       /*mp_ass_subscript*/ 
 };
 
+PyDoc_STRVAR(end_of_string__doc__, "Flag to indicate the end of a string");
+PyDoc_STRVAR(value__doc__, "A pointed to by this node");
+
 static PyGetSetDef Node_getseters[] = {
     {"end_of_string", 
      (getter)Node_get_end_of_string, (setter)Node_set_end_of_string,
      end_of_string__doc__, NULL},
+    {"value", 
+     (getter)Node_get_value, (setter)Node_set_value,
+     value__doc__, NULL},
     {NULL}  /* Sentinel */
+};
+
+/* Hack to implement "key in dict" */
+static PySequenceMethods Node_as_sequence = {
+    0,                          /* sq_length */
+    0,                          /* sq_concat */
+    0,                          /* sq_repeat */
+    0,                          /* sq_item */
+    0,                          /* sq_slice */
+    0,                          /* sq_ass_item */
+    0,                          /* sq_ass_slice */
+    PyNode_Contains,            /* sq_contains */
+    0,                          /* sq_inplace_concat */
+    0,                          /* sq_inplace_repeat */
 };
 
 static PyTypeObject PyNode_Type = {
@@ -396,7 +479,7 @@ static PyTypeObject PyNode_Type = {
     0,                                          /* tp_reserved */
     0,                                          /* tp_repr */
     0,                                          /* tp_as_number */
-    0,                                          /* tp_as_sequence */
+    &Node_as_sequence,                          /* tp_as_sequence */
     &Node_as_mapping,                           /* tp_as_mapping */
     0,                                          /* tp_hash */
     0,                                          /* tp_call */

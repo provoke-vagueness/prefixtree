@@ -67,19 +67,19 @@ class TestCNode(unittest.TestCase):
         del n
 
     def test_set_get(self):
-        n = trie.Node()
+        n = _trie.Node()
         n[0] = Ellipsis
         self.assertIs(n[0], Ellipsis)
 
     def test_set_del_single(self):
-        n = trie.Node()
+        n = _trie.Node()
         n[0] = Ellipsis
         del n[0]
         self.assertRaises(KeyError,
                 n.__getitem__,0)
 
     def test_set_del_first(self):
-        n = trie.Node()
+        n = _trie.Node()
         n[0] = Ellipsis
         n[1] = Ellipsis
         del n[0]
@@ -87,7 +87,7 @@ class TestCNode(unittest.TestCase):
                 n.__getitem__,0)
 
     def test_set_del_last(self):
-        n = trie.Node()
+        n = _trie.Node()
         n[0] = Ellipsis
         n[1] = Ellipsis
         del n[1]
@@ -95,7 +95,7 @@ class TestCNode(unittest.TestCase):
                 n.__getitem__,1)
 
     def test_set_del_mid(self):
-        n = trie.Node()
+        n = _trie.Node()
         n[0] = Ellipsis
         n[1] = Ellipsis
         n[2] = Ellipsis
@@ -104,20 +104,21 @@ class TestCNode(unittest.TestCase):
                 n.__getitem__,1)
 
     def test_set_set(self):
-        n = trie.Node()
+        n = _trie.Node()
         n[0] = False
         self.assertIs(n[0], False)
         n[0] = True
         self.assertIs(n[0], True)
 
     def test_contains(self):
-        n = trie.Node()
+        n = _trie.Node()
         self.assertFalse(0 in n)
         n[0] = Ellipsis
+        print(n.__contains__(0))
         self.assertTrue(0 in n)
 
     def test_set_get_end_of_string(self):
-        n = trie.Node()
+        n = _trie.Node()
         self.assertFalse(n.end_of_string)
         n.end_of_string = True 
         self.assertTrue(n.end_of_string)
@@ -125,9 +126,20 @@ class TestCNode(unittest.TestCase):
         self.assertFalse(n.end_of_string)
 
     def test_del_end_of_string(self):
-        n = trie.Node()
+        n = _trie.Node()
         self.assertRaises(TypeError, 
                     delattr, n, 'end_of_string')
+
+    def test_get_set_value(self):
+        n = _trie.Node()
+        self.assertFalse(hasattr(n, 'value'))
+        self.assertRaises(AttributeError,
+                getattr, n, 'value')
+        n.value = "this is a value"
+        self.assertEqual("this is a value", n.value)
+        delattr(n, 'value')
+        self.assertRaises(AttributeError,
+                getattr, n, 'value')
 
     def test_itervalues(self):
         n = _trie.Node()
@@ -174,6 +186,15 @@ class TestCNode(unittest.TestCase):
             for key in n.values():
                 n[0] = None
         self.assertRaises(RuntimeError, _iter_change_size)
+
+    def test_get_func(self):
+        n = _trie.Node()
+        for i in range(1, 128):
+            n[i] = i
+        self.assertEqual(n.get(1), 1)
+        self.assertEqual(n.get(200, 1), 1)
+        self.assertEqual(n.get(200), None) 
+
 
 class TestNode(unittest.TestCase):
 
