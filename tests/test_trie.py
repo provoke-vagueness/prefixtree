@@ -187,6 +187,12 @@ class TestCNode(unittest.TestCase):
                 n[0] = None
         self.assertRaises(RuntimeError, _iter_change_size)
 
+    def test_reversed_iteritems(self):
+        n = _trie.Node()
+        for i in range(0,256):
+            n[i] = i
+        self.assertSequenceEqual([a for a,_ in reversed(n)], range(255, -1, -1))
+
     def test_get_func(self):
         n = _trie.Node()
         for i in range(1, 128):

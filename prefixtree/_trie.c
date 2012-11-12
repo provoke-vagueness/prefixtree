@@ -30,7 +30,8 @@ typedef struct {
 PyTypeObject PyNodeIterKeys_Type;
 PyTypeObject PyNodeIterValues_Type;
 PyTypeObject PyNodeIterItems_Type;
-static PyObject *NodeIter_new(PyNodeObject *, PyTypeObject *);
+static PyObject *NodeIter_new(PyNodeObject *, PyTypeObject *,
+                              Py_ssize_t, Py_ssize_t);
 
 #define FLAG_END_OF_STRING 0
 
@@ -141,8 +142,6 @@ lookup(PyNodeObject *node, unsigned char key, ChildObject **child)
     }
     return -1;
 }
-
-
 
 static int
 Node_delitem(PyNodeObject *self, PyObject *py_key)
@@ -363,19 +362,25 @@ Node_init(PyNodeObject *self, PyObject *args, PyObject *kw)
 static PyObject *
 Node_iterkeys(PyNodeObject *node)
 {
-    return NodeIter_new(node, &PyNodeIterKeys_Type);
+    return NodeIter_new(node, &PyNodeIterKeys_Type, 0, 1);
 }
     
 static PyObject *
 Node_itervalues(PyNodeObject *node)
 {
-    return NodeIter_new(node, &PyNodeIterValues_Type);
+    return NodeIter_new(node, &PyNodeIterValues_Type, 0, 1);
 }
 
 static PyObject *
 Node_iteritems(PyNodeObject *node)
 {
-    return NodeIter_new(node, &PyNodeIterItems_Type);
+    return NodeIter_new(node, &PyNodeIterItems_Type, 0, 1);
+}
+
+static PyObject *
+Node_reversed(PyNodeObject *node)
+{
+    return NodeIter_new(node, &PyNodeIterItems_Type, Py_SIZE(node)-1, -1);
 }
 
 static void
@@ -415,15 +420,19 @@ PyDoc_STRVAR(items__doc__, "N.items() -> iter items");
 PyDoc_STRVAR(values__doc__, "N.values() -> iter values");
 PyDoc_STRVAR(get__doc__,
 "N.get(k[,d]) -> N[k] if k in N, else d.  d defaults to None.");
+PyDoc_STRVAR(reversed__doc__,
+"N.__reversed__() -- return a reverse iterator over the list");
 
 static PyMethodDef Node_methods[] = {
     {"__contains__",   (PyCFunction)Node_contains,      METH_O | METH_COEXIST,
     contains__doc__},
     {"__getitem__",    (PyCFunction)Node_subscript,     METH_O | METH_COEXIST,
     getitem__doc__},
+    {"__reversed__",   (PyCFunction)Node_reversed,      METH_NOARGS,
+    reversed__doc__},
     {"__sizeof__",     (PyCFunction)Node_sizeof,        METH_NOARGS, 
     sizeof__doc__},
-    {"get",         (PyCFunction)Node_get,              METH_VARARGS,
+    {"get",            (PyCFunction)Node_get,           METH_VARARGS,
      get__doc__},
     {"keys",           (PyCFunction)Node_iterkeys,      METH_NOARGS,
     keys__doc__},
@@ -514,12 +523,14 @@ typedef struct {
     PyObject_HEAD
         PyNodeObject *ni_node;
         Py_ssize_t ni_pos;
+        Py_ssize_t ni_step;
         PyObject  *ni_iteritems_result;
         Py_ssize_t ni_size;
 } NodeIterObject;
 
 static PyObject *
-NodeIter_new(PyNodeObject *node, PyTypeObject *itertype)
+NodeIter_new(PyNodeObject *node, PyTypeObject *itertype, 
+                Py_ssize_t start_pos, Py_ssize_t step)
 {
     NodeIterObject *ni;
     ni = PyObject_GC_New(NodeIterObject, itertype);
@@ -527,7 +538,8 @@ NodeIter_new(PyNodeObject *node, PyTypeObject *itertype)
         return NULL;
     Py_INCREF(node);
     ni->ni_node = node;
-    ni->ni_pos = 0;
+    ni->ni_pos = start_pos;
+    ni->ni_step = step;
     ni->ni_size = Py_SIZE(node);
     if (itertype == &PyNodeIterItems_Type) {
         ni->ni_iteritems_result = PyTuple_Pack(2, Py_None, Py_None);
@@ -568,7 +580,7 @@ NodeIter_iternextkey(NodeIterObject *ni)
 
     node = ni->ni_node;
     pos = ni->ni_pos;
-    ni->ni_pos++;
+    ni->ni_pos += ni->ni_step;
 
     if (node == NULL)
         return NULL;
@@ -581,22 +593,17 @@ NodeIter_iternextkey(NodeIterObject *ni)
         return NULL;
     }
 
-    if (pos < 0)
-        goto fail;
-
-    if (pos >= Py_SIZE(node))
+    if ((pos < 0) || (pos >= Py_SIZE(node)))
         return NULL;
 
     child = node->children[pos];
     key = PyLong_FromLong((long)child->key);
-    if (!key)
-        goto fail;
+    if (!key) {
+        Py_DECREF(ni->ni_node);
+        ni->ni_node = NULL;
+        return NULL;
+    }
     return key;
-
-fail:
-    Py_DECREF(ni->ni_node);
-    ni->ni_node = NULL;
-    return NULL;
 }
 
 PyTypeObject PyNodeIterKeys_Type = {
@@ -643,7 +650,7 @@ NodeIter_iternextvalue(NodeIterObject *ni)
 
     node = ni->ni_node;
     pos = ni->ni_pos;
-    ni->ni_pos++;
+    ni->ni_pos += ni->ni_step;
 
     if (node == NULL)
         return NULL;
@@ -656,21 +663,13 @@ NodeIter_iternextvalue(NodeIterObject *ni)
         return NULL;
     }
 
-    if (pos < 0)
-        goto fail;
-
-    if (pos >= Py_SIZE(node))
+    if ((pos < 0) || (pos >= Py_SIZE(node)))
         return NULL;
 
     child = node->children[pos];
     value = child->child;
     Py_INCREF(value);
     return value;
-
-fail:
-    Py_DECREF(ni->ni_node);
-    ni->ni_node = NULL;
-    return NULL;
 }
 
 PyTypeObject PyNodeIterValues_Type = {
@@ -718,7 +717,7 @@ NodeIter_iternextitem(NodeIterObject *ni)
     result = ni->ni_iteritems_result;
     node = ni->ni_node;
     pos = ni->ni_pos;
-    ni->ni_pos++;
+    ni->ni_pos += ni->ni_step;
 
     if (node == NULL)
         return NULL;
@@ -731,10 +730,7 @@ NodeIter_iternextitem(NodeIterObject *ni)
         return NULL;
     }
 
-    if (pos < 0)
-        goto fail;
-
-    if (pos >= Py_SIZE(node))
+    if ((pos < 0) || (pos >= Py_SIZE(node)))
         return NULL;
 
     //if someone still has our result tuple, lets build a new one...
@@ -750,18 +746,16 @@ NodeIter_iternextitem(NodeIterObject *ni)
 
     child = node->children[pos];
     key = PyLong_FromLong((long)child->key);
-    if (!key)
-        goto fail;
+    if (!key) {
+        Py_DECREF(ni->ni_node);
+        ni->ni_node = NULL;
+        return NULL;
+    }
     value = child->child;
     Py_INCREF(value);
     PyTuple_SET_ITEM(result, 0, key);
     PyTuple_SET_ITEM(result, 1, value);
     return result;
-
-fail:
-    Py_DECREF(ni->ni_node);
-    ni->ni_node = NULL;
-    return NULL;
 }
 
 PyTypeObject PyNodeIterItems_Type = {

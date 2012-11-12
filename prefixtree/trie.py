@@ -31,12 +31,6 @@ class Node(_trie.Node):
     def path(self):
         return self._path
 
-    def __reversed__(self):
-        #TODO: make the items iterator compatible with a sequence so we can 
-        #      place it straight into reversed
-        for key, node in reversed([a for a in self.items()]):
-            yield key, node
-
 
 class TrieBase(object):
     "Base class for collection classes implemented using a Trie"
