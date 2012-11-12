@@ -32,14 +32,10 @@ class Node(_trie.Node):
         return self._path
 
     def __reversed__(self):
-        raise NotImplementedError()
-        for key, offset in enumerate(reversed(self._branches)):
-            if offset >= len(self._nodes):
-                continue
-            node = self._nodes[offset]
-            if node is not None:
-                yield (255 - key, node)
-
+        #TODO: make the items iterator compatible with a sequence so we can 
+        #      place it straight into reversed
+        for key, node in reversed([a for a in self.items()]):
+            yield key, node
 
 
 class TrieBase(object):
@@ -61,7 +57,7 @@ class TrieBase(object):
     def _delete(self, keys, node):
         try:
             index = next(keys)
-            child = node[index]
+            child = node.get(index)
             if child is None:
                 raise AttributeError(index)
             leaf = self._delete(keys, child)
@@ -74,7 +70,7 @@ class TrieBase(object):
     def _insert(self, keys, node):
         try:
             index = next(keys)
-            child = node[index]
+            child = node.get(index)
             if child is None:
                 child = Node(node.path + char(index))
                 node[index] = child
@@ -104,7 +100,7 @@ class TrieBase(object):
     def _search(self, keys, node, exact=True):
         try:
             index = next(keys)
-            child = node[index]
+            child = node.get(index)
             if child is None and exact:
                 raise AttributeError(index)
             elif child is None:
@@ -120,7 +116,8 @@ class TrieBase(object):
         yield root
         lower = next(start)
         upper = next(stop)
-        for key, child in iterate(root):
+        #TODO: is root supposed to change size during this iteration?
+        for key, child in list(iterate(root)): 
             for descendant in self._walk(child, start, stop,
                                         lower, upper, iterate):
                 yield descendant
