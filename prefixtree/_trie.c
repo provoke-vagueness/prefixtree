@@ -117,7 +117,7 @@ Node_parsekey(PyObject *py_key, unsigned char *key)
 #if PY_MAJOR_VERSION >= 3
         py_key = PyBytes_FromObject(py_key);
 #else
-        py_key = PyString_FromObject(py_key);
+        py_key = PyObject_Str(py_key);
 #endif
     if (!py_key)
         return -1;
