@@ -114,15 +114,28 @@ Node_parsekey(PyObject *py_key, unsigned char *key)
         py_key = PyUnicode_AsUTF8String(py_key);
     }
     else
+#if PY_MAJOR_VERSION >= 3
         py_key = PyBytes_FromObject(py_key);
+#else
+        py_key = PyString_FromObject(py_key);
+#endif
     if (!py_key)
         return -1;
+#if PY_MAJOR_VERSION >= 3
     if (PyBytes_GET_SIZE(py_key) != 1) {
+#else
+    if (PyString_GET_SIZE(py_key) != 1) {
+#endif
         PyErr_SetString(PyExc_ValueError, "len(key) != 1");
         return -1;
     }
     Py_DECREF(py_key);
+#if PY_MAJOR_VERSION >= 3
     *key = PyBytes_AS_STRING(py_key)[0];
+#else
+    *key = PyString_AS_STRING(py_key)[0];
+#endif
+
     return 0;
 }
 
