@@ -196,6 +196,8 @@ Node_setitem(PyNodeObject *self, PyObject *py_key, PyObject *child)
     unsigned char key;
     ChildObject * item;
     ChildObject ** new_children;
+    volatile int in_idx;
+    int i;
 
     if (Node_parsekey(py_key, &key) != 0)
         return -1;
@@ -203,6 +205,7 @@ Node_setitem(PyNodeObject *self, PyObject *py_key, PyObject *child)
     //increment the ref count on this child object
     Py_INCREF(child);
 
+    //check if key already exists
     if (lookup(self, key, &item) != -1) {
         Py_DECREF(item->child);
         item->child = child;
@@ -220,7 +223,8 @@ Node_setitem(PyNodeObject *self, PyObject *py_key, PyObject *child)
     item->child = child;
 
     //insert the new child object
-    if (Py_SIZE(self) == 0) {
+    Py_SIZE(self) += 1;
+    if (Py_SIZE(self) == 1) {
         self->children = (ChildObject **)PyMem_Malloc(sizeof(void *));
         if (self->children == NULL) {
             PyMem_Free(item);
@@ -228,10 +232,9 @@ Node_setitem(PyNodeObject *self, PyObject *py_key, PyObject *child)
             PyErr_NoMemory();
             return -1;
         }
-        Py_SIZE(self) = 1;
+        in_idx = 0;
     }
     else {
-        Py_SIZE(self) += 1;
         new_children = (ChildObject **)PyMem_Resize(self->children,
                 ChildObject *, Py_SIZE(self));
         if (new_children == NULL) {
@@ -241,8 +244,18 @@ Node_setitem(PyNodeObject *self, PyObject *py_key, PyObject *child)
             return -1;
         }
         self->children = new_children;
+
+        in_idx = 0;
+        for (i = Py_SIZE(self) - 1; i > 0; i--) { 
+            if ((int)(self->children[i - 1]->key) > (int)key) 
+                self->children[i] = self->children[i - 1];
+            else {
+                in_idx = i;
+                break;
+            }
+        }
     }
-    self->children[Py_SIZE(self)-1] = item;
+    self->children[in_idx] = item;
 
     return 0;
 }

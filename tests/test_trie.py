@@ -201,6 +201,23 @@ class TestCNode(unittest.TestCase):
         self.assertEqual(n.get(200, 1), 1)
         self.assertEqual(n.get(200), None) 
 
+    def test_ordered_keys(self):
+        n = _trie.Node()
+        n[4] = 0
+        n[2] = 0
+        n[7] = 0
+        self.assertSequenceEqual([a for a in n.keys()], [2,4,7])
+        n = _trie.Node()
+        n[2] = 0
+        n[4] = 0
+        n[7] = 0
+        self.assertSequenceEqual([a for a in n.keys()], [2,4,7])
+
+        n[7] = 0
+        n[4] = 0
+        n[2] = 0
+        self.assertSequenceEqual([a for a in n.keys()], [2,4,7])
+
 
 class TestNode(unittest.TestCase):
 
