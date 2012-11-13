@@ -100,7 +100,7 @@ Node_parsekey(PyObject *py_key, unsigned char *key)
 {
     //if py_key is a long, validate its range
     if (PyLong_Check(py_key)) {
-        long value = PyLong_AS_LONG(py_key);
+        long value = PyLong_AsLong(py_key);
         if (value < 0 || value > 255) {
             PyErr_SetString(PyExc_ValueError, "key <0 || >255");
             return -1;
@@ -196,8 +196,7 @@ Node_setitem(PyNodeObject *self, PyObject *py_key, PyObject *child)
     unsigned char key;
     ChildObject * item;
     ChildObject ** new_children;
-    volatile int in_idx;
-    int i;
+    int in_idx, i;
 
     if (Node_parsekey(py_key, &key) != 0)
         return -1;
