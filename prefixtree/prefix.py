@@ -12,23 +12,25 @@ Reference:
 [mjdorma@gmail.com]
 
 """
+import codecs
 
 from prefixtree._trie import Node
 
 
-def pprint_prefix(prefix, out = sys.stdout):
+def pprint_prefix(prefix, out=sys.stdout.buffer):
     """pretty print a prefix tree"""
+    out = codecs.getwriter("latin")(out)
     def _print_prefix(node, depth, key, forks, out):
         if depth != 0:
             pad = [" "] * (depth * 4)
             for fork in forks:
                 pad[fork*4 - 1] = '|'
             pad = "".join(pad)
-            out.write("%s\n" % pad)
-            out.write("%s-->%s" % (pad, key[-1]))
-            if hasattr(node,'value'):
-                out.write(" (%s=%s)\n" % ("".join([chr(a) for a in key]), 
-                                                    node.value))
+            out.write(str("%s\n" % pad))
+            out.write(str("%s-->%s" % (pad, key[-1])))
+            if hasattr(node, 'value'):
+                k = str(b"".join(key), 'latin')
+                out.write(" (%s=%s)\n" % (k, node.value))
             else:
                 out.write("\n")
         if len(node) > 1:
@@ -55,6 +57,7 @@ class Prefix:
     
     def __setitem__(self, i, y):
         """x.__setitem__(i, y) <==> x[i]=y"""
+        i = bytes(i,'latin')
         if i[0] not in self.root:
             self.root[i[0]] = Node()
         leaf = self.root[i[0]]
@@ -155,15 +158,14 @@ class Prefix:
             leaf = self.find_node(p)
         except KeyError:
             return []
-        return self.iteritems_from_node(leaf, 
-                                        prefix=[ord(a) for a in p])
+        return self.iteritems_from_node(leaf, bytes(p,'latin').split())
 
     def iteritems_from_node(self, node, prefix=[]):
         """D.iteritems_from_node(node) -> an iterator over (key, value) items
         from node
         """
         if hasattr(node, 'value'):
-            yield ("".join([chr(a) for a in prefix]), node.value)
+            yield (b"".join(prefix), node.value)
 
         node_stack = [(prefix, iter(node))]
         while True:
@@ -172,7 +174,7 @@ class Prefix:
                 k, child = node_iter.__next__()
                 new_key = key + [k]
                 if hasattr(child, 'value'):
-                    yield ("".join([chr(a) for a in new_key]), child.value)
+                    yield (b"".join(new_key), child.value)
                 node_stack.append((new_key, iter(child)))
             except StopIteration:
                 if len(node_stack) == 1:

@@ -146,7 +146,7 @@ class TestCNode(unittest.TestCase):
         for i in range(256):
             n[i] = 256 - i
         for key, value in n:
-            self.assertTrue(256 - key, value)
+            self.assertTrue(256 - ord(key), value)
 
     def test_itervalues_change_size(self):
         def _iter_change_size():
@@ -161,7 +161,7 @@ class TestCNode(unittest.TestCase):
         n = _trie.Node()
         for i in range(256):
             n[i] = None 
-        self.assertSequenceEqual(list(n.keys()), list(range(256)))
+        self.assertSequenceEqual([ord(a) for a in n.keys()], list(range(256)))
 
     def test_iterkeys_change_size(self):
         def _iter_change_size():
@@ -191,7 +191,8 @@ class TestCNode(unittest.TestCase):
         n = _trie.Node()
         for i in range(0,256):
             n[i] = i
-        self.assertSequenceEqual([a for a,_ in reversed(n)], range(255, -1, -1))
+        self.assertSequenceEqual([ord(a) for a,_ in reversed(n)], 
+                        range(255, -1, -1))
 
     def test_get_func(self):
         n = _trie.Node()
@@ -206,17 +207,17 @@ class TestCNode(unittest.TestCase):
         n[4] = 0
         n[2] = 0
         n[7] = 0
-        self.assertSequenceEqual([a for a in n.keys()], [2,4,7])
+        self.assertSequenceEqual([ord(a) for a in n.keys()], [2,4,7])
         n = _trie.Node()
         n[2] = 0
         n[4] = 0
         n[7] = 0
-        self.assertSequenceEqual([a for a in n.keys()], [2,4,7])
+        self.assertSequenceEqual([ord(a) for a in n.keys()], [2,4,7])
 
         n[7] = 0
         n[4] = 0
         n[2] = 0
-        self.assertSequenceEqual([a for a in n.keys()], [2,4,7])
+        self.assertSequenceEqual([ord(a) for a in n.keys()], [2,4,7])
 
 
 class TestNode(unittest.TestCase):
@@ -245,14 +246,14 @@ class TestNode(unittest.TestCase):
         self.assertTrue(0 in n)
 
     def test_iterate(self):
-        keys = [(k, Ellipsis) for k in range(128, 256)]
+        keys = [(bytes(chr(k),'latin'), Ellipsis) for k in range(128, 256)]
         n = trie.Node()
         for k, v in keys:
             n[k] = v
         self.assertSequenceEqual(list(iter(n)), keys)
 
     def test_len(self):
-        keys = [(k, Ellipsis) for k in range(128, 256)]
+        keys = [(bytes(chr(k),'latin'), Ellipsis) for k in range(128, 256)]
         n = trie.Node()
         for k, v in keys:
             n[k] = v

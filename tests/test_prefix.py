@@ -65,6 +65,7 @@ class TestPrefixIters(unittest.TestCase):
     def test_iteritems(self):
         """prefix - iteritems prefix iteration"""
         items = [a for a in self.prefix.iteritems()]
+        print (items)
         self.assertTrue(len(items) == 6)
 
     def test_iterkeys(self):

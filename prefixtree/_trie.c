@@ -618,7 +618,8 @@ NodeIter_iternextkey(NodeIterObject *ni)
         return NULL;
 
     child = node->children[pos];
-    key = PyLong_FromLong((long)child->key);
+    key = PyBytes_FromStringAndSize(&child->key, 1);
+    //key = PyLong_FromLong((long)child->key);
     if (!key) {
         Py_DECREF(ni->ni_node);
         ni->ni_node = NULL;
@@ -766,7 +767,8 @@ NodeIter_iternextitem(NodeIterObject *ni)
     }
 
     child = node->children[pos];
-    key = PyLong_FromLong((long)child->key);
+    key = PyBytes_FromStringAndSize(&child->key, 1);
+    //key = PyLong_FromLong((long)child->key);
     if (!key) {
         Py_DECREF(ni->ni_node);
         ni->ni_node = NULL;
