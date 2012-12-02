@@ -1,7 +1,7 @@
 import unittest
 
-from prefix import Prefix
-from prefix import pprint_prefix
+from prefixtree.prefix import Prefix
+from prefixtree.prefix import pprint_prefix
 
 
 class TestPrefixBasics(unittest.TestCase):
