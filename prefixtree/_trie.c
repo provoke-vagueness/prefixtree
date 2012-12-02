@@ -35,13 +35,15 @@ static PyObject *NodeIter_new(PyNodeObject *, PyTypeObject *,
 
 #define FLAG_END_OF_STRING 0
 
+#define FLAG_SET_BIT(self, flag) self->flags |= (1 << flag)
+#define FLAG_CLEAR_BIT(self, flag) self->flags &=~ (1 << flag)
 void 
 Node_set_flag(PyNodeObject *self, PyObject *value, unsigned char flag)
 {
     if (PyObject_IsTrue(value)) 
-        self->flags |= (1 << flag);
+        FLAG_SET_BIT(self, flag);
     else
-        self->flags &= ~(1 << flag);
+        FLAG_CLEAR_BIT(self, flag);
 }
 
 static int 
