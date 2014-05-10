@@ -31,8 +31,8 @@ The only incompatible API difference between *prefixtree* collections and the
 builtins is that ``PrefixDict`` and ``PrefixSet`` only support strings as keys.
 Unicode strings will be encoded to byte strings before and after use.
 
-Unlike the bultins, it's possible to use slices when getting, setting and
-deleting values from *prefixtree* collecionts. ::
+Unlike the builtins, it's possible to use slices when getting, setting and
+deleting values from *prefixtree* collections. ::
 
     >>> list(pd['a':'c'])
     [0, 1, 2]
@@ -47,7 +47,7 @@ deleting values from *prefixtree* collecionts. ::
 
 Refer to the full *prefixtree* documentation on `Read The Docs`_ for details.
 
-Compatability
+Compatibility
 -------------
 
 ``prefixtree`` is implemented to be compatible with Python 2.x and Python 3.x.
