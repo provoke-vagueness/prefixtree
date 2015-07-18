@@ -1,10 +1,12 @@
 #!/usr/bin/env python
-from distribute_setup import use_setuptools
-use_setuptools()
 
-from setuptools import setup
-import re
-import sys
+try: # python 3?
+    from setuptools import setup
+except ImportError: # python 2
+    from distribute_setup import use_setuptools
+    use_setuptools()
+
+import re, sys
 
 def load_version(filename='prefixtree/version.py'):
     "Parse a __version__ number from a source file"
@@ -20,9 +22,7 @@ def load_version(filename='prefixtree/version.py'):
 def load_rst(filename='docs/source/guide_content.rst'):
     "Purge refs directives from restructured text"
     with open(filename) as source:
-        text = source.read()
-        doc = re.sub(r':\w+:`~?([a-zA-Z._()]+)`', r'*\1*', text)
-        return doc
+        return re.sub(r':\w+:`~?([a-zA-Z._()]+)`', r'*\1*', source.read())
 
 setup(
     name="prefixtree",
@@ -48,6 +48,8 @@ setup(
         'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.2',
+        'Programming Language :: Python :: 3.3',
+        'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: Implementation :: CPython',
         'Programming Language :: Python :: Implementation :: PyPy',
         'Topic :: Software Development :: Libraries :: Python Modules'
