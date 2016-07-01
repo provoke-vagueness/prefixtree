@@ -56,6 +56,7 @@ It has been tested against the following Python implementations:
 * CPython 2.6
 * CPython 2.7
 * CPython 3.2
+* CPython 3.4`
 * PyPy 1.9.0
 
 Continuous integration testing is provided by `Travis CI`_.
